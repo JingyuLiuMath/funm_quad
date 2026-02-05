@@ -1,5 +1,18 @@
-function [ w,H,h,breakdown,accuracy_flag ] = tarnoldi_update( A,m,H,s,param )
-% truncated arnoldi but the last vector is set to be orthonormal to V_{m}.
+function [ w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_update( A,m,H,s,param )
+%ARNOLDI   Extend a given Arnoldi decomposition (V_big,H) of dimension s
+%  to dimension m. This file has been adapted from the FUNM_KRYL code
+%  described in 
+%
+%  M. Afanasjew, M. Eiermann, O. G. Ernst, and S. G\"{u}ttel (2008):
+%  Implementation of a restarted Krylov subspace method for the evaluation
+%  of matrix functions, Linear Algebra Appl., 429:2293--2314.
+%
+%  It is now part of the FUNM_QUAD code described in 
+%
+%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and 
+%  stable Arnoldi restarts for matrix functions based on quadrature,
+%  SIAM J. Matrix Anal. Appl., 35:661--683, 2014.
+%
 
 accuracy_flag = 0;
 fm = 0;
@@ -40,23 +53,18 @@ for k = s:m,
             w = w - V_big(:,j)*ip(1);
         end
     end
-
-    if k < m
-        H(k+1,k) = sqrt(param.inner_product(w,w));
-    else
-        c = V_big(:,1 : m) \ w;
-        w = w - V_big(:,1 : m) * c;
-        H(k+1, k) = sqrt(param.inner_product(w,w));
-        H(:, m) = H(:, m) + c;
-    end
-
-    w = (1/H(k+1,k))*w;
+    
+    H(k+1,k) = sqrt(param.inner_product(w,w));
     
     if abs(H(k+1,k)) < k*eps*norm(H(1:k+1,k))
         breakdown = k;
         break
     end
-
+    
+    w = (1/H(k+1,k))*w;
+    if k < m
+        V_big(:,k+1) = w;
+    end
     if param.max_restarts == 1 && (~mod(k,10) && k >= 20),
         if isa(fm,'function_handle')
             c = fm(H(1:k,1:k))*eye(k,1);
@@ -83,6 +91,11 @@ for k = s:m,
     end
     
 end
+
+% update.
+c = V_big(:,1 : m) \ w;
+w = w - V_big(:,1 : m) * c;
+H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 
 h = H(m+1,m);
 H = H(1:m,1:m);
