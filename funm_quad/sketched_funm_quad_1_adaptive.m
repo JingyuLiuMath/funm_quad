@@ -52,7 +52,6 @@ end
 
 beta = sqrt(param.inner_product(b,b));
 v = (1/beta)*b;
-beta_acc = beta;
 
 n = length(b);
 if param.restart_length >= n,
@@ -99,6 +98,7 @@ if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
 end
 
+update_norm = inf;
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
@@ -140,17 +140,27 @@ for k = 1:param.max_restarts,
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
-        V = V_big(:,1:m+ell);
-        % orth_err = norm(V' * V - eye(size(V, 2)));
-        % fprintf("orth_err: %e\n", orth_err);
-        % d_AD = A * V - (V * H + v * eta * unit(m, m)S');
-        % norm(d_AD)
-        SV = S * V;
-        SAV = SV * H + (S * v) * eta * unit(m, m)';
-        [Q, R] = qr(SV, "econ");
-        G = Q' * SAV  / R;
-        rhs = Q' * (S * V_big(:, 1));
+        if update_norm > param.ada_tol * norm(f)
+            % no sketching.
+            tmp_param = param;
+            tmp_param.truncation_length = inf;
+            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,tmp_param );
+            G = H;
+            R = [];
+            rhs = unit(1, m);
+        else
+            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
+            V = V_big(:,1:m+ell);
+            % orth_err = norm(V' * V - eye(size(V, 2)));
+            % fprintf("orth_err: %e\n", orth_err);
+            % d_AD = A * V - (V * H + v * eta * unit(m, m)S');
+            % norm(d_AD)
+            SV = S * V;
+            SAV = SV * H + (S * v) * eta * unit(m, m)';
+            [Q, R] = qr(SV, "econ");
+            G = Q' * SAV  / R;
+            rhs = Q' * (S * V_big(:, 1));
+        end
     end
 
     if breakdown
@@ -218,7 +228,9 @@ for k = 1:param.max_restarts,
             case 3
                 % h2 = expm(H)*unit(ell+1,m+ell);
                 h2 = expm(G) * rhs;
-                h2 = R \ h2;
+                if ~isempty(R)
+                    h2 = R \ h2;
+                end
         end
     else
         converged = 0;
@@ -335,7 +347,9 @@ for k = 1:param.max_restarts,
                                 decr_h1 = c(j)*((z(j)*speye(size(G))- G)\rhs);
                                 h1 = h1 - decr_h1;
                             end
-                            h1 = R \ h1;
+                            if ~isempty(R)
+                                h1 = R \ h1;
+                            end
                             h1 = 2*real(h1);
                     end
                 end
@@ -459,7 +473,9 @@ for k = 1:param.max_restarts,
                             decr_h2 = c2(j)*((z2(j)*speye(size(G))- G)\rhs);
                             h2 = h2 - decr_h2;
                         end
-                        h2 = R \ h2;
+                        if ~isempty(R)
+                            h2 = R \ h2;
+                        end
                         h2 = 2*real(h2);
                 end
             end
@@ -500,8 +516,13 @@ for k = 1:param.max_restarts,
     f = V_big*h_big + f;
 
     out.appr(:,k) = f;
-    out.update(k) = norm(V_big*h_big);  % norm of update
-
+    update_norm = norm(V_big*h_big);
+    out.update(k) = update_norm;  % norm of update
+    if isempty(R)
+        out.sketching(k) = 0;
+    else
+        out.sketching(k) = 1;
+    end
 
     % keep track of subdiagonal entries of Hessenberg matrix
     if m ~= 1

@@ -50,8 +50,7 @@ if param.waitbar,
     hand = waitbar(0,'Please wait...');
 end
 
-beta = sqrt(param.inner_product(b,b));
-v = (1/beta)*b;
+v = b;
 
 n = length(b);
 if param.restart_length >= n,
@@ -86,13 +85,19 @@ alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
 global S;
-sketch_size = 2 * m;
+if param.sketch_dim_type == "add"
+    sketch_size = ceil(m + param.sketch_dim_factor);
+elseif param.sketch_dim_type == "prod"
+    sketch_size = ceil(m * param.sketch_dim_factor);
+end
+S = randn(sketch_size, n);  % sketching matrix.
 
 global SV_big
 SV_big = zeros(sketch_size, alloc);
 global SAV_big
 SAV_big = zeros(sketch_size, alloc);
 
+max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
@@ -132,8 +137,6 @@ for k = 1:param.max_restarts,
     else
         H = [];
     end
-    
-    S = randn(sketch_size, n);  % sketching matrix.
 
     beta = norm(v);
     w = S * v;
@@ -146,8 +149,8 @@ for k = 1:param.max_restarts,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
         [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi( A,m+ell,H,ell+1,param );
-        SV = SV_big(:,1:m+ell);
-        SAV = SAV_big(:,1:m+ell);
+        % SV = SV_big(:,1:m+ell);
+        % SAV = SAV_big(:,1:m+ell);
         % G = SV' * SAV;
         G = H;
         % rhs = SV' * (SV_big(:, 1)) * sketched_beta / beta;
@@ -470,12 +473,16 @@ for k = 1:param.max_restarts,
                     end
                     out.num_quadpoints(k) = N;
                     converged = 1;
-                else
+                elseif N < max_num_quad_points
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     h1 = h2;
                     N = N2;
+                else
+                    fprintf("quadrature does not converge but exceed max\n");
+                    out.num_quadpoints(k) = N;
+                    converged = 1;
                 end
             end
         end
@@ -494,7 +501,7 @@ for k = 1:param.max_restarts,
     f = V_big*h_big + f;
     
     out.appr(:,k) = f;
-    out.update(k) = beta*norm(h_big);  % norm of update
+    out.update(k) = norm(V_big*h_big);  % norm of update
     
     
     % keep track of subdiagonal entries of Hessenberg matrix

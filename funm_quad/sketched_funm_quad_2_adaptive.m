@@ -1,13 +1,13 @@
-function [f,out,param] = sketched_funm_quad_1(A,b,param)
+function [f,out,param] = sketched_funm_quad_2(A,b,param)
 % FUNM_QUAD   Approximate f(A)*b by quadrature-based restarted Arnoldi
 %
 % This method is described in detail in
 %
-%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and
+%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and 
 %  stable Arnoldi restarts for matrix functions based on quadrature,
 %  SIAM J. Matrix Anal. Appl., 35:661--683, 2014.
 %
-% and analyzed in
+% and analyzed in 
 %
 % Parts of this code are based on the FUNM_KRYL method described in
 %
@@ -50,9 +50,7 @@ if param.waitbar,
     hand = waitbar(0,'Please wait...');
 end
 
-beta = sqrt(param.inner_product(b,b));
-v = (1/beta)*b;
-beta_acc = beta;
+v = b;
 
 n = length(b);
 if param.restart_length >= n,
@@ -86,6 +84,7 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
+global S;
 if param.sketch_dim_type == "add"
     sketch_size = ceil(m + param.sketch_dim_factor);
 elseif param.sketch_dim_type == "prod"
@@ -93,29 +92,35 @@ elseif param.sketch_dim_type == "prod"
 end
 S = randn(sketch_size, n);  % sketching matrix.
 
+global SV_big
+SV_big = zeros(sketch_size, alloc);
+global SAV_big
+SAV_big = zeros(sketch_size, alloc);
+
 max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
 end
 
+update_norm = inf;
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
     if str2double(out.stop_condition(1)),
         break
     end
-
+    
     if param.verbose >= 2,
         disp(['---- Restart cycle ',num2str(k),' ----']);
     end
-
+    
     % waitbar and cputime
     if param.waitbar,
         waitbar(k/param.max_restarts,hand);
     end
     out.time(k) = cputime;
-
+    
     % compute A-invariant subspace of prev. cycle (thick restart)
     if (~isempty(param.thick) && k > 1),
         ell_prev = ell;
@@ -133,26 +138,34 @@ for k = 1:param.max_restarts,
     else
         H = [];
     end
-
-    V_big(:,ell+1) = v;
-
+    
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
-        V = V_big(:,1:m+ell);
-        % orth_err = norm(V' * V - eye(size(V, 2)));
-        % fprintf("orth_err: %e\n", orth_err);
-        % d_AD = A * V - (V * H + v * eta * unit(m, m)S');
-        % norm(d_AD)
-        SV = S * V;
-        SAV = SV * H + (S * v) * eta * unit(m, m)';
-        [Q, R] = qr(SV, "econ");
-        G = Q' * SAV  / R;
-        rhs = Q' * (S * V_big(:, 1));
+        if update_norm > param.ada_tol * norm(f)
+            beta = norm(v);
+            V_big(:,ell+1) = v / beta;
+            w = [];
+            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
+            G = H;
+            rhs = unit(1, m);
+        else
+            beta = norm(v);
+            w = S * v;
+            sketched_beta = norm(w);
+            SV_big(:, ell + 1) = w / sketched_beta;
+            V_big(:,ell+1) = v / sketched_beta;
+            [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi( A,m+ell,H,ell+1,param );
+            % SV = SV_big(:,1:m+ell);
+            % SAV = SAV_big(:,1:m+ell);
+            % G = SV' * SAV;
+            G = H;
+            % rhs = SV' * (SV_big(:, 1)) * sketched_beta / beta;
+            rhs = unit(1, m) * sketched_beta / beta;
+        end
     end
-
+    
     if breakdown
         m = breakdown;
         if ~accuracy_flag
@@ -166,14 +179,14 @@ for k = 1:param.max_restarts,
             H = H(1:breakdown+ell,1:breakdown+ell);
         end
     end
-
+    
     out.thick_interpol{k} = eig(H);
-
+    
     % store full Krylov basis?
     if param.V_full,
         out.V_full = [ out.V_full , V_big(:,1:m+ell) ];
     end
-
+    
     % Schur form of H (for thick restarts)
     if (~isempty(param.thick)),
         if isreal(H),
@@ -183,7 +196,7 @@ for k = 1:param.max_restarts,
         end
         D = ordeig(T);
     end
-
+    
     % interpolation nodes currently active in f:
     %    k = 1 -> []
     %    k = 2 -> [ out1.thick_interpol{1} ; out1.thick_replaced{1} ]
@@ -191,7 +204,7 @@ for k = 1:param.max_restarts,
     %    ...
     % (note that the "replaced nodes" are going to be replaced in the next
     % sweep, respectively)
-
+    
     active_nodes = [];
     for kk = 1:k-1,
         active_nodes = [ active_nodes ; out.thick_interpol{kk} ];
@@ -199,14 +212,14 @@ for k = 1:param.max_restarts,
     if ~isempty(param.thick) && k > 1,
         active_nodes = [ active_nodes ; out.thick_replaced{k-1} ];
     end
-
+    
     if (param.H_full),
         H_full = blkdiag(H_full,H);
         if k>1,
             H_full(end-m+1,end-m-ell) = s;
         end
     end
-
+    
     % approximate the restart function:
     % "h = e_k(H)*unit(ell+1,m+ell)"
     if k == 1 && fun_switch ~= 4 % in the first iteration g_1 = f and we use the "closed" form
@@ -218,7 +231,6 @@ for k = 1:param.max_restarts,
             case 3
                 % h2 = expm(H)*unit(ell+1,m+ell);
                 h2 = expm(G) * rhs;
-                h2 = R \ h2;
         end
     else
         converged = 0;
@@ -237,7 +249,7 @@ for k = 1:param.max_restarts,
                 if mod(N,2) == 1
                     N = N-1;
                 end
-
+                
                 switch fun_switch
                     case 1
                         % if f(z) = 1/sqrt(z), use Gauss-Jacobi quadrature
@@ -272,7 +284,7 @@ for k = 1:param.max_restarts,
                         z = phi(theta); % quad nodes
                         c = -hh/(2i*pi)*exp(z).*(1i*bb - 2*cc*theta);
                 end
-
+                
                 % Evaluate the reciprocal of the nodal polynomial at the
                 % quadrature points
                 switch fun_switch
@@ -283,7 +295,7 @@ for k = 1:param.max_restarts,
                     case 3
                         tt = z(1:N/2);
                 end
-
+                
                 if isempty(param.thick)
                     rho_vec = evalnodal(tt, active_nodes, subdiag).';
                 else
@@ -291,7 +303,7 @@ for k = 1:param.max_restarts,
                     rho_vec_replaced = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
                     rho_vec = rho_vec .* rho_vec_replaced;
                 end
-
+                
                 if param.hermitian % for Hermitian matrices, use diagonalization and scalar quadrature
                     ee = unit(ell+1,ell+m);
                     ww = WW\ee;
@@ -335,17 +347,16 @@ for k = 1:param.max_restarts,
                                 decr_h1 = c(j)*((z(j)*speye(size(G))- G)\rhs);
                                 h1 = h1 - decr_h1;
                             end
-                            h1 = R \ h1;
                             h1 = 2*real(h1);
                     end
                 end
             end
-
+            
             N2 = ceil(sqrt(2)*N);
             if mod(N2,2) == 1
                 N2 = N2+1;
             end
-
+            
             switch fun_switch
                 case 1
                     % if f(z) = 1/sqrt(z), use Gauss-Jacobi quadrature
@@ -378,7 +389,7 @@ for k = 1:param.max_restarts,
                     z2 = phi(theta2); % quad nodes
                     c2 = -hh2/(2i*pi)*exp(z2).*(1i*bb - 2*cc*theta2);
             end
-
+            
             % Evaluate the reciprocal of the nodal polynomial at the
             % quadrature points
             switch fun_switch
@@ -389,7 +400,7 @@ for k = 1:param.max_restarts,
                 case 3
                     tt = z2(1:N2/2);
             end
-
+            
             if fun_switch ~= 4
                 if isempty(param.thick)
                     rho_vec2 = evalnodal(tt, active_nodes, subdiag).';
@@ -399,7 +410,7 @@ for k = 1:param.max_restarts,
                     rho_vec2 = rho_vec2 .* rho_vec_replaced2;
                 end
             end
-
+            
             if param.hermitian || fun_switch == 4   %for Hermitian matrices, use diagonalization and scalar quadrature
                 ee = unit(ell+1,ell+m);
                 ww = WW\ee;
@@ -459,11 +470,10 @@ for k = 1:param.max_restarts,
                             decr_h2 = c2(j)*((z2(j)*speye(size(G))- G)\rhs);
                             h2 = h2 - decr_h2;
                         end
-                        h2 = R \ h2;
                         h2 = 2*real(h2);
                 end
             end
-
+            
             % Check if quadrature rule has converged
             if fun_switch ~= 4
                 if norm(beta*(h2-h1))/norm(f) < tol
@@ -488,21 +498,27 @@ for k = 1:param.max_restarts,
     end
     % end of restart function approximation
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
+    
+    
     % workaround due to matlab 'bug' (copies large submatrices)
-
+    
     h_big = beta*h2(1:m+ell,1);
     if size(V_big,2) > length(h_big),
         h_big(size(V_big,2),1) = 0;
     end
     % update Krylov approximation
     f = V_big*h_big + f;
-
+    
     out.appr(:,k) = f;
-    out.update(k) = norm(V_big*h_big);  % norm of update
-
-
+    update_norm = norm(V_big*h_big);
+    out.update(k) = update_norm;  % norm of update
+    if isempty(w)
+        out.sketching(k) = 0;
+    else
+        out.sketching(k) = 1;
+    end
+    
+    
     % keep track of subdiagonal entries of Hessenberg matrix
     if m ~= 1
         subdiag = [ subdiag ; diag(H(end-m+1:end,end-m+1:end),-1) ; eta ];
@@ -510,20 +526,20 @@ for k = 1:param.max_restarts,
         subdiag = [ subdiag ; eta ];
     end
     s = eta;
-
-
+    
+    
     % get cpu-time
     out.time(k) = cputime - out.time(k);
-
+    
     % check stopping condition
     if  stopcondition(out.update/norm(f) < param.stopping_accuracy) || accuracy_flag % stop by norm of update?
         out.stop_condition = '5 - norm of updates decayed below stopping accuracy';
     end
-
+    
     if ~isempty(param.exact),
         % stop by absolute error?
         out.err(k) = norm(f - param.exact);
-
+        
         if stopcondition(out.err(2:end)./out.err(1:end-1) >  param.min_decay),
             out.stop_condition = '3 - linear convergence rate of absolute error > min_decay';
         end
@@ -531,11 +547,11 @@ for k = 1:param.max_restarts,
             out.stop_condition = '1 - absolute error below stopping accuracy';
         end
     end
-
+    
     if breakdown && ~accuracy_flag,
         out.stop_condition = '6 - Arnoldi/Lanczos breakdown';
     end
-
+    
 end
 % restart loop ends here
 
