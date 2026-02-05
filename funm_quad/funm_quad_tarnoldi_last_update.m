@@ -1,4 +1,4 @@
-function [f,out,param] = funm_quad_last_col_update(A,b,param)
+function [f,out,param] = funm_quad_tarnoldi_last_update(A,b,param)
 % funm_quad with last col update.
 
 if nargin < 3,

@@ -100,5 +100,10 @@ for k = s:m,
     
 end
 
+% update.
+c = V_big(:,1 : m) \ w;
+w = w - V_big(:,1 : m) * c;
+H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
+
 h = H(m+1,m);
 H = H(1:m,1:m);

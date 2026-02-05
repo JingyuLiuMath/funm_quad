@@ -19,7 +19,6 @@ maxNumCompThreads(1);
 compare_mode = 0;
 sk_type = "prod";
 sk_factor = 1.2;
-ada_tol = 1e-4;
 
 %% Build discretization matrix for 2D convection-diffusion problem 
 nu = 1;
@@ -79,29 +78,46 @@ fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t)
 fprintf("\n\n");
 
 fprintf("truncated Arnoldi with last update\n");
-new_param = param;
-new_param.truncation_length = 10;
+t_param = param;
+t_param.truncation_length = 10;
 tic;
-[f1, out1] = funm_quad_last_update(A,b,new_param);
-t1 = toc;
+[f_t, out_t] = funm_quad_tarnoldi_last_update(A,b,t_param);
+t_t = toc;
 
-num_it = length(out1.num_quadpoints);
-rel_err = norm(f - f1) / norm(f);
+num_it = length(out_t.num_quadpoints);
+rel_err = norm(f - f_t) / norm(f);
 fprintf("iter rel_err time\n");
-fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t1);
-sk1_rel_err0 = norm(out1.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
-fprintf("initial err: %e\n", sk1_rel_err0);
+fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_t);
+t_rel_err0 = norm(out_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+fprintf("initial err: %e\n", t_rel_err0);
 fprintf("\n\n");
 
+fprintf("sketched Arnoldi with last update\n");
+s_param = param;
+s_param.sketch_dim_type = sk_type;
+s_param.sketch_dim_factor = sk_factor;
+tic;
+[f_s, out_s] = funm_quad_sarnoldi_last_update(A,b,s_param);
+t_s = toc;
+
+num_it = length(out_s.num_quadpoints);
+rel_err = norm(f - f_s) / norm(f);
+fprintf("iter rel_err time\n");
+fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_t);
+s_rel_err0 = norm(out_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+fprintf("initial err: %e\n", s_rel_err0);
+fprintf("\n\n");
 
 %% plot convergence curve and number of quadrature points
-max_iter = max([length(out.appr), length(out1.appr)]);
 if ~isempty(out.appr)
+    max_iter = max([length(out.appr), length(out_t.appr), length(out_s.appr)]);
+    
     close all;
     figure();
     semilogy(vecnorm(f - out.appr) / norm(f), 'g--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(vecnorm(f - out1.appr) / norm(f), 'r--x', "DisplayName", "last updated t-Arnoldi");
+    semilogy(vecnorm(f - out_t.appr) / norm(f), 'r--x', "DisplayName", "last updated t-Arnoldi");
+    semilogy(vecnorm(f - out_s.appr) / norm(f), 'b--*', "DisplayName", "last updated s-Arnoldi");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -110,7 +126,8 @@ if ~isempty(out.appr)
     figure();
     semilogy(out.update, 'g--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(out1.update, 'r--x', "DisplayName", "last updated t-Arnoldi");
+    semilogy(out_t.update, 'r--x', "DisplayName", "last updated t-Arnoldi");
+    semilogy(out_s.update, 'b--*', "DisplayName", "last updated s-Arnoldi");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -119,7 +136,8 @@ if ~isempty(out.appr)
     figure();
     plot(out.num_quadpoints, 'g--+', "DisplayName", "benchmark");
     hold on;
-    plot(out1.num_quadpoints, 'r--x', "DisplayName", "last updated t-Arnoldi");
+    plot(out_t.num_quadpoints, 'r--x', "DisplayName", "last updated t-Arnoldi");
+    plot(out_s.num_quadpoints, 'b--*', "DisplayName", "last updated s-Arnoldi");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');
