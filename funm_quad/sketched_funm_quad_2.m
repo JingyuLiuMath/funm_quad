@@ -138,7 +138,6 @@ for k = 1:param.max_restarts,
         H = [];
     end
 
-    beta = norm(v);
     w = S * v;
     sketched_beta = norm(w);
     SV_big(:, ell + 1) = w / sketched_beta;
@@ -148,13 +147,13 @@ for k = 1:param.max_restarts,
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi( A,m+ell,H,ell+1,param );
-        % SV = SV_big(:,1:m+ell);
-        % SAV = SAV_big(:,1:m+ell);
-        % G = SV' * SAV;
-        G = H;
+        [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi_last_update( A,m+ell,H,ell+1,param );
+        SV = SV_big(:,1:m+ell);
+        SAV = SAV_big(:,1:m+ell);
+        G = SV' * SAV;
+        % G = H;
         % rhs = SV' * (SV_big(:, 1)) * sketched_beta / beta;
-        rhs = unit(1, m) * sketched_beta / beta;
+        rhs = SV' * w;
     end
     
     if breakdown
@@ -467,7 +466,7 @@ for k = 1:param.max_restarts,
             
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm(beta*(h2-h1))/norm(f) < tol
+                if norm((h2-h1))/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
@@ -493,7 +492,7 @@ for k = 1:param.max_restarts,
     
     % workaround due to matlab 'bug' (copies large submatrices)
     
-    h_big = beta*h2(1:m+ell,1);
+    h_big = h2(1:m+ell,1);
     if size(V_big,2) > length(h_big),
         h_big(size(V_big,2),1) = 0;
     end

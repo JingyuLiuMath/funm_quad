@@ -1,4 +1,4 @@
-function [ w,H,h,breakdown,accuracy_flag] = sketched_arnoldi( A,m,H,s,param )
+function [ w,H,h,breakdown,accuracy_flag] = sketched_arnoldi_last_update( A,m,H,s,param )
 %ARNOLDI   Extend a given Arnoldi decomposition (V_big,H) of dimension s
 %  to dimension m. This file has been adapted from the FUNM_KRYL code
 %  described in 
@@ -101,7 +101,8 @@ for k = s:m,
 end
 
 % update.
-c = V_big(:,1 : m) \ w;
+% c = V_big(:,1 : m) \ w;
+c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
 w = w - V_big(:,1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 

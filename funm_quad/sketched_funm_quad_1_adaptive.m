@@ -1,4 +1,4 @@
-function [f,out,param] = sketched_funm_quad_1(A,b,param)
+function [f,out,param] = sketched_funm_quad_1_adaptive(A,b,param)
 % FUNM_QUAD   Approximate f(A)*b by quadrature-based restarted Arnoldi
 %
 % This method is described in detail in
@@ -50,8 +50,7 @@ if param.waitbar,
     hand = waitbar(0,'Please wait...');
 end
 
-beta = sqrt(param.inner_product(b,b));
-v = (1/beta)*b;
+v = b;
 
 n = length(b);
 if param.restart_length >= n,
@@ -133,33 +132,31 @@ for k = 1:param.max_restarts,
     else
         H = [];
     end
-
-    V_big(:,ell+1) = v;
+    
+    v_old = v;
+    beta = norm(v);
+    V_big(:,ell+1) = v / beta;
 
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
         if update_norm > param.ada_tol * norm(f)
-            % no sketching.
             tmp_param = param;
             tmp_param.truncation_length = inf;
             [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,tmp_param );
             G = H;
-            R = [];
-            rhs = unit(1, m);
+            rhs = beta * unit(1, m);
+            out.sketching(k) = 0;
         else
-            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
-            V = V_big(:,1:m+ell);
-            % orth_err = norm(V' * V - eye(size(V, 2)));
-            % fprintf("orth_err: %e\n", orth_err);
-            % d_AD = A * V - (V * H + v * eta * unit(m, m)S');
-            % norm(d_AD)
+            [ v,H,eta,breakdown, accuracy_flag ] = tarnoldi_last_update( A,m+ell,H,ell+1,param );
+            V = V_big(:, 1 : m);
             SV = S * V;
             SAV = SV * H + (S * v) * eta * unit(m, m)';
             [Q, R] = qr(SV, "econ");
-            G = Q' * SAV  / R;
-            rhs = Q' * (S * V_big(:, 1));
+            G = R \ (Q' * SAV);
+            rhs = R \ (Q' * S * v_old);
+            out.sketching(k) = 1;
         end
     end
 
@@ -228,9 +225,6 @@ for k = 1:param.max_restarts,
             case 3
                 % h2 = expm(H)*unit(ell+1,m+ell);
                 h2 = expm(G) * rhs;
-                if ~isempty(R)
-                    h2 = R \ h2;
-                end
         end
     else
         converged = 0;
@@ -346,9 +340,6 @@ for k = 1:param.max_restarts,
                                 % h1 = h1 - c(j)*((z(j)*speye(size(H))-H)\ee);
                                 decr_h1 = c(j)*((z(j)*speye(size(G))- G)\rhs);
                                 h1 = h1 - decr_h1;
-                            end
-                            if ~isempty(R)
-                                h1 = R \ h1;
                             end
                             h1 = 2*real(h1);
                     end
@@ -473,16 +464,13 @@ for k = 1:param.max_restarts,
                             decr_h2 = c2(j)*((z2(j)*speye(size(G))- G)\rhs);
                             h2 = h2 - decr_h2;
                         end
-                        if ~isempty(R)
-                            h2 = R \ h2;
-                        end
                         h2 = 2*real(h2);
                 end
             end
 
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm(beta*(h2-h1))/norm(f) < tol
+                if norm((h2-h1))/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
@@ -508,21 +496,17 @@ for k = 1:param.max_restarts,
 
     % workaround due to matlab 'bug' (copies large submatrices)
 
-    h_big = beta*h2(1:m+ell,1);
+    h_big = h2(1:m+ell,1);
     if size(V_big,2) > length(h_big),
         h_big(size(V_big,2),1) = 0;
     end
     % update Krylov approximation
     f = V_big*h_big + f;
 
-    out.appr(:,k) = f;
     update_norm = norm(V_big*h_big);
+    out.appr(:,k) = f;
     out.update(k) = update_norm;  % norm of update
-    if isempty(R)
-        out.sketching(k) = 0;
-    else
-        out.sketching(k) = 1;
-    end
+
 
     % keep track of subdiagonal entries of Hessenberg matrix
     if m ~= 1

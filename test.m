@@ -51,63 +51,35 @@ num_it = length(out.num_quadpoints);
 rel_err = norm(f - f) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t)
-% fprintf("update norm\n");
-% for it = 1 : num_it
-%     if it ~= num_it
-%         fprintf(" %.4e &", out.update(it));
-%     else
-%         fprintf(" %.4e ", out.update(it));
-%     end
-% end
 fprintf("\n\n");
 
 fprintf("truncated Arnoldi\n");
 sk1_param = param;
-sk1_param.truncation_length = 5;
+sk1_param.truncation_length = 70;
 sk1_param.sketch_dim_type = sk_type;
 sk1_param.sketch_dim_factor = sk_factor;
-% profile on
 tic;
 [sk1_f, sk1_out] = sketched_funm_quad_1(A,b,sk1_param);
 sk1_t = toc;
-% profile viewer
 
 num_it = length(sk1_out.num_quadpoints);
 rel_err = norm(f - sk1_f) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, sk1_t);
-% fprintf("update norm\n");
-% for it = 1 : num_it
-%     if it ~= num_it
-%         fprintf(" %.4e &", sk1_out.update(it));
-%     else
-%         fprintf(" %.4e ", sk1_out.update(it));
-%     end
-% end
 fprintf("\n\n");
 
-fprintf("sketched Gram-Schmidt\n");
+fprintf("sketched Arnoldi\n");
 sk2_param = param;
 sk2_param.sketch_dim_type = sk_type;
 sk2_param.sketch_dim_factor = sk_factor;
-% profile on;
 tic;
 [sk2_f, sk2_out] = sketched_funm_quad_2(A,b,sk2_param);
 sk2_t = toc;
-% profile viewer;
 
 num_it = length(sk2_out.num_quadpoints);
 rel_err = norm(f - sk2_f) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, sk2_t);
-% fprintf("update norm\n");
-% for it = 1 : num_it
-%     if it ~= num_it
-%         fprintf(" %.4e &", sk2_out.update(it));
-%     else
-%         fprintf(" %.4e ", sk2_out.update(it));
-%     end
-% end
 fprintf("\n\n");
 
 %%

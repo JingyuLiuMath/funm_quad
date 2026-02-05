@@ -93,7 +93,8 @@ for k = s:m,
 end
 
 % update.
-c = V_big(:,1 : m) \ w;
+% c = V_big(:,1 : m) \ w;
+c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
 w = w - V_big(:,1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 

@@ -1,4 +1,4 @@
-function [f,out,param] = sketched_funm_quad_2(A,b,param)
+function [f,out,param] = sketched_funm_quad_2_adaptive(A,b,param)
 % FUNM_QUAD   Approximate f(A)*b by quadrature-based restarted Arnoldi
 %
 % This method is described in detail in
@@ -138,7 +138,8 @@ for k = 1:param.max_restarts,
     else
         H = [];
     end
-    
+
+
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
@@ -146,23 +147,27 @@ for k = 1:param.max_restarts,
         if update_norm > param.ada_tol * norm(f)
             beta = norm(v);
             V_big(:,ell+1) = v / beta;
-            w = [];
-            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
+
+            tmp_param = param;
+            tmp_param.truncation_length = inf;
+            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,tmp_param );
             G = H;
-            rhs = unit(1, m);
+            rhs = beta * unit(1, m);
+            out.sketching(k) = 0;
         else
-            beta = norm(v);
             w = S * v;
             sketched_beta = norm(w);
             SV_big(:, ell + 1) = w / sketched_beta;
             V_big(:,ell+1) = v / sketched_beta;
-            [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi( A,m+ell,H,ell+1,param );
-            % SV = SV_big(:,1:m+ell);
-            % SAV = SAV_big(:,1:m+ell);
-            % G = SV' * SAV;
-            G = H;
+
+            [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi_last_update( A,m+ell,H,ell+1,param );
+            SV = SV_big(:,1:m+ell);
+            SAV = SAV_big(:,1:m+ell);
+            G = SV' * SAV;
+            % G = H;
             % rhs = SV' * (SV_big(:, 1)) * sketched_beta / beta;
-            rhs = unit(1, m) * sketched_beta / beta;
+            rhs = SV' * w;
+            out.sketching(k) = 1;
         end
     end
     
@@ -476,7 +481,7 @@ for k = 1:param.max_restarts,
             
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm(beta*(h2-h1))/norm(f) < tol
+                if norm((h2-h1))/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
@@ -502,21 +507,16 @@ for k = 1:param.max_restarts,
     
     % workaround due to matlab 'bug' (copies large submatrices)
     
-    h_big = beta*h2(1:m+ell,1);
+    h_big = h2(1:m+ell,1);
     if size(V_big,2) > length(h_big),
         h_big(size(V_big,2),1) = 0;
     end
     % update Krylov approximation
     f = V_big*h_big + f;
     
-    out.appr(:,k) = f;
     update_norm = norm(V_big*h_big);
+    out.appr(:,k) = f;
     out.update(k) = update_norm;  % norm of update
-    if isempty(w)
-        out.sketching(k) = 0;
-    else
-        out.sketching(k) = 1;
-    end
     
     
     % keep track of subdiagonal entries of Hessenberg matrix
