@@ -11,7 +11,7 @@ standard = "nonorth_fom";
 
 %% Initialize 2D Laplacian + some non-Herm part (no practical background).
 nu = 1;
-N = 500;
+N = 200;
 I = speye(N);
 e = ones(N,1);
 A = (N+1)^2*gallery('poisson',N);
@@ -50,7 +50,7 @@ close all;
 fprintf("\n\n");
 fprintf("benchmark\n");
 tic
-[f,out] = funm_quad_fom_last_update_tarnoldi(A,b,param);
+[f,out] = funm_quad(A,b,param);
 t = toc;
 
 num_it = length(out.num_quadpoints);
