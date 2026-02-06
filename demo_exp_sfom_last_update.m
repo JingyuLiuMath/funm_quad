@@ -1,24 +1,13 @@
-% Use the quadrature-based restart algorithm FUNM_QUAD described in
-%
-%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and 
-%  stable Arnoldi restarts for matrix functions based on quadrature,
-%  SIAM J. Matrix Anal. Appl., 35:661--683, 2014.
-%
-% to compute the exponential function of the 500x500 finite difference 
-% discretization of a two-dimensional convection-diffusion problem for 
-% convection parameters 0 (symmetric), 100 and 200 (non-symmetric) to 
-% demonstrate the different behavior concerning speed of convergence 
-% and required number of quadrature nodes for symmetric and non-symmetric 
-% problems.
-
 clear;
 close all;
 rng(2026);
 maxNumCompThreads(1);
 
-compare_mode = 0;
+truncation_length = 5;
 sk_type = "prod";
 sk_factor = 1.2;
+ada_tol = inf;  % inf means always sketching
+standard = "nonorth_fom";
 
 %% Build discretization matrix for 2D convection-diffusion problem 
 nu = 1;
@@ -36,7 +25,8 @@ s = 2*1e-3;
 A = -s*A;
 
 % choose right-hand side as normalized vector of all ones
-b = ones(N^2,1); b = b/norm(b);
+b = ones(N^2, 1);
+b = b/norm(b);
 
 
 %% choose parameters for the FUNM_QUAD restart algorithm
@@ -49,11 +39,7 @@ param.tol = 1e-7;                   % tolerance for quadrature rule
 param.hermitian = 0;                % the matrix A is Hermitian
 param.V_full = 0;                   % set 1 if you need Krylov basis
 param.H_full = 0;                   % do not store all Hessenberg matrices
-if compare_mode == 1
-    param.exact = exact_convdiff_1;     % exact solution. If not known set to []
-else
-    param.exact = [];
-end
+param.exact = [];
 param.stopping_accuracy = 1e-8;     % stopping accuracy
 param.inner_product = @(a,b) b'*a;  % use standard Euclidean inner product
 param.thick = [];                   % no implicit deflation is performed
@@ -77,11 +63,15 @@ fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t)
 fprintf("\n\n");
 
-fprintf("truncated Arnoldi with last update\n");
+fprintf("sfom with last update using t-arnoldi\n");
 t_param = param;
-t_param.truncation_length = 10;
+t_param.truncation_length = truncation_length;
+t_param.sketch_dim_type = sk_type;
+t_param.sketch_dim_factor = sk_factor;
+t_param.ada_tol = ada_tol;
+t_param.standard = standard;
 tic;
-[f_t, out_t] = funm_quad_tarnoldi_last_update(A,b,t_param);
+[f_t, out_t] = funm_quad_sfom_last_update_tarnoldi(A,b,t_param);
 t_t = toc;
 
 num_it = length(out_t.num_quadpoints);
@@ -90,14 +80,17 @@ fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_t);
 t_rel_err0 = norm(out_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", t_rel_err0);
+fprintf("number of sketching steps: %d\n", sum(out_t.sketching));
 fprintf("\n\n");
 
-fprintf("sketched Arnoldi with last update\n");
+fprintf("sfom with last update using s-arnoldi\n");
 s_param = param;
 s_param.sketch_dim_type = sk_type;
 s_param.sketch_dim_factor = sk_factor;
+s_param.ada_tol = ada_tol;
+s_param.standard = standard;
 tic;
-[f_s, out_s] = funm_quad_sarnoldi_last_update(A,b,s_param);
+[f_s, out_s] = funm_quad_sfom_last_update_sarnoldi(A,b,s_param);
 t_s = toc;
 
 num_it = length(out_s.num_quadpoints);
@@ -106,6 +99,7 @@ fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_t);
 s_rel_err0 = norm(out_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", s_rel_err0);
+fprintf("number of sketching steps: %d\n", sum(out_s.sketching));
 fprintf("\n\n");
 
 %% plot convergence curve and number of quadrature points
@@ -116,8 +110,8 @@ if ~isempty(out.appr)
     figure();
     semilogy(vecnorm(f - out.appr) / norm(f), 'g--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(vecnorm(f - out_t.appr) / norm(f), 'r--x', "DisplayName", "last updated t-Arnoldi");
-    semilogy(vecnorm(f - out_s.appr) / norm(f), 'b--*', "DisplayName", "last updated s-Arnoldi");
+    semilogy(vecnorm(f - out_t.appr) / norm(f), 'r--x', "DisplayName", "t-Arnoldi");
+    semilogy(vecnorm(f - out_s.appr) / norm(f), 'b--*', "DisplayName", "s-Arnoldi");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -126,8 +120,8 @@ if ~isempty(out.appr)
     figure();
     semilogy(out.update, 'g--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(out_t.update, 'r--x', "DisplayName", "last updated t-Arnoldi");
-    semilogy(out_s.update, 'b--*', "DisplayName", "last updated s-Arnoldi");
+    semilogy(out_t.update, 'r--x', "DisplayName", "t-Arnoldi");
+    semilogy(out_s.update, 'b--*', "DisplayName", "s-Arnoldi");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -136,8 +130,8 @@ if ~isempty(out.appr)
     figure();
     plot(out.num_quadpoints, 'g--+', "DisplayName", "benchmark");
     hold on;
-    plot(out_t.num_quadpoints, 'r--x', "DisplayName", "last updated t-Arnoldi");
-    plot(out_s.num_quadpoints, 'b--*', "DisplayName", "last updated s-Arnoldi");
+    plot(out_t.num_quadpoints, 'r--x', "DisplayName", "t-Arnoldi");
+    plot(out_s.num_quadpoints, 'b--*', "DisplayName", "s-Arnoldi");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');

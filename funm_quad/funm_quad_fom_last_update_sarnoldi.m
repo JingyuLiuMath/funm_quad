@@ -1,21 +1,5 @@
-function [f,out,param] = sketched_funm_quad_2_adaptive(A,b,param)
-% FUNM_QUAD   Approximate f(A)*b by quadrature-based restarted Arnoldi
-%
-% This method is described in detail in
-%
-%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and 
-%  stable Arnoldi restarts for matrix functions based on quadrature,
-%  SIAM J. Matrix Anal. Appl., 35:661--683, 2014.
-%
-% and analyzed in 
-%
-% Parts of this code are based on the FUNM_KRYL method described in
-%
-%  M. Afanasjew, M. Eiermann, O. G. Ernst, and S. G\"{u}ttel (2008):
-%  Implementation of a restarted Krylov subspace method for the evaluation
-%  of matrix functions, Linear Algebra Appl., 429:2293--2314.
-%
-% Please refer to the demo files to see how this code is used.
+function [f,out,param] = funm_quad_fom_last_update_sarnoldi(A,b,param)
+% funm_quad with last col update.
 
 if nargin < 3,
     param = struct;
@@ -97,13 +81,12 @@ SV_big = zeros(sketch_size, alloc);
 global SAV_big
 SAV_big = zeros(sketch_size, alloc);
 
-max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
 end
 
-update_norm = inf;
+beta_acc = 1;
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
@@ -138,37 +121,20 @@ for k = 1:param.max_restarts,
     else
         H = [];
     end
-
-
+    
+    v_old = v;
+    Sv  = S * v;
+    beta = norm(Sv);
+    V_big(:, 1) = v / beta;
+    SV_big(:, 1) = Sv / beta;
+    
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        if update_norm > param.ada_tol * norm(f)
-            beta = norm(v);
-            V_big(:,ell+1) = v / beta;
-
-            tmp_param = param;
-            tmp_param.truncation_length = inf;
-            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,tmp_param );
-            G = H;
-            rhs = beta * unit(1, m);
-            out.sketching(k) = 0;
-        else
-            w = S * v;
-            sketched_beta = norm(w);
-            SV_big(:, ell + 1) = w / sketched_beta;
-            V_big(:,ell+1) = v / sketched_beta;
-
-            [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi_last_update( A,m+ell,H,ell+1,param );
-            SV = SV_big(:,1:m+ell);
-            SAV = SAV_big(:,1:m+ell);
-            G = SV' * SAV;
-            % G = H;
-            % rhs = SV' * (SV_big(:, 1)) * sketched_beta / beta;
-            rhs = SV' * w;
-            out.sketching(k) = 1;
-        end
+        [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi_last_update( A,m+ell,H,ell+1,param );
+        % rhs = V \ v_old;
+        rhs = beta * unit(1, m);  % this is because v_old = s_beta * V(:, 1).
     end
     
     if breakdown
@@ -230,12 +196,14 @@ for k = 1:param.max_restarts,
     if k == 1 && fun_switch ~= 4 % in the first iteration g_1 = f and we use the "closed" form
         switch fun_switch
             case 1
-                h2 = sqrtm(H)\unit(ell+1,m+ell);
+                % h2 = sqrtm(H)\unit(ell+1,m+ell);
+                h2 = sqrtm(H) \ rhs;
             case 2
-                h2 = logm(eye(m+ell)+H)*(H\unit(ell+1,m+ell));
+                % h2 = logm(eye(m+ell)+H)*(H\unit(ell+1,m+ell));
+                h2 = logm(eye(m) + H) * (H \ rhs);
             case 3
                 % h2 = expm(H)*unit(ell+1,m+ell);
-                h2 = expm(G) * rhs;
+                h2 = expm(H) * rhs;
         end
     else
         converged = 0;
@@ -302,7 +270,7 @@ for k = 1:param.max_restarts,
                 end
                 
                 if isempty(param.thick)
-                    rho_vec = evalnodal(tt, active_nodes, subdiag).';
+                    rho_vec = beta_acc * evalnodal(tt, active_nodes, subdiag).';
                 else
                     rho_vec = evalnodal(tt, active_nodes(1:end-length(out.thick_replaced{k-1})), subdiag(1:end-length(out.thick_replaced{k-1}))).';
                     rho_vec_replaced = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
@@ -333,24 +301,21 @@ for k = 1:param.max_restarts,
                     end
                     h1 = WW*h1;
                 else % for non-Hermitian matrices, use matrix quadrature to avoid diagonalization
-                    ee = unit(ell+1,ell+m);
-                    h1 = zeros(size(ee));
+                    h1 = zeros(size(rhs));
                     switch fun_switch
                         case 1
                             for j = 1:length(t)
-                                h1 = h1 + weights(j)*rho_vec(j)*((-beta_transform*(1-t(j))*eye(ell+m)-H*(1+t(j)))\ee);
+                                h1 = h1 + weights(j)*rho_vec(j)*((-beta_transform*(1-t(j))*eye(ell+m)-H*(1+t(j)))\rhs);
                             end
                             h1 = -2*sqrt(beta_transform)/pi*h1;
                         case 2
                             for j = 1:length(t)
-                                h1 = h1 + weights(j)*rho_vec(j)*((H*(1+t(j))+2*eye(m+ell))\ee);
+                                h1 = h1 + weights(j)*rho_vec(j)*((H*(1+t(j))+2*eye(m+ell))\rhs);
                             end
                         case 3
                             c = c(1:N/2).*rho_vec.';
                             for j = 1:N/2
-                                % h1 = h1 - c(j)*((z(j)*speye(size(H))-H)\ee);
-                                decr_h1 = c(j)*((z(j)*speye(size(G))- G)\rhs);
-                                h1 = h1 - decr_h1;
+                                h1 = h1 - c(j)*((z(j)*speye(size(H))-H)\rhs);
                             end
                             h1 = 2*real(h1);
                     end
@@ -408,7 +373,7 @@ for k = 1:param.max_restarts,
             
             if fun_switch ~= 4
                 if isempty(param.thick)
-                    rho_vec2 = evalnodal(tt, active_nodes, subdiag).';
+                    rho_vec2 = beta_acc * evalnodal(tt, active_nodes, subdiag).';
                 else
                     rho_vec2 = evalnodal(tt, active_nodes(1:end-length(out.thick_replaced{k-1})), subdiag(1:end-length(out.thick_replaced{k-1}))).';
                     rho_vec_replaced2 = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
@@ -456,24 +421,21 @@ for k = 1:param.max_restarts,
                     h2 = WW*h2;
                 end
             else %for non-Hermitian matrices, use matrix quadrature to avoid diagonalization
-                ee = unit(ell+1,ell+m);
-                h2 = zeros(size(ee));
+                h2 = zeros(size(rhs));
                 switch fun_switch
                     case 1
                         for j = 1:length(t2)
-                            h2 = h2 + weights2(j)*rho_vec2(j)*((-beta_transform*(1-t2(j))*eye(ell+m)-H*(1+t2(j)))\ee);
+                            h2 = h2 + weights2(j)*rho_vec2(j)*((-beta_transform*(1-t2(j))*eye(ell+m)-H*(1+t2(j)))\rhs);
                         end
                         h2 = -2*sqrt(beta_transform)/pi*h2;
                     case 2
                         for j = 1:length(t2)
-                            h2 = h2 + weights2(j)*rho_vec2(j)*((H*(1+t2(j))+2*eye(m+ell))\ee);
+                            h2 = h2 + weights2(j)*rho_vec2(j)*((H*(1+t2(j))+2*eye(m+ell))\rhs);
                         end
                     case 3
                         c2 = c2(1:N2/2).*rho_vec2.';
                         for j = 1:N2/2
-                            % h2 = h2 - c2(j)*((z2(j)*speye(size(H))-H)\ee);
-                            decr_h2 = c2(j)*((z2(j)*speye(size(G))- G)\rhs);
-                            h2 = h2 - decr_h2;
+                            h2 = h2 - c2(j)*((z2(j)*speye(size(H))-H)\rhs);
                         end
                         h2 = 2*real(h2);
                 end
@@ -481,22 +443,18 @@ for k = 1:param.max_restarts,
             
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm((h2-h1))/norm(f) < tol
+                if norm(h2-h1)/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     out.num_quadpoints(k) = N;
                     converged = 1;
-                elseif N < max_num_quad_points
+                else
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     h1 = h2;
                     N = N2;
-                else
-                    fprintf("quadrature does not converge but exceed max\n");
-                    out.num_quadpoints(k) = N;
-                    converged = 1;
                 end
             end
         end
@@ -512,11 +470,12 @@ for k = 1:param.max_restarts,
         h_big(size(V_big,2),1) = 0;
     end
     % update Krylov approximation
-    f = V_big*h_big + f;
+    f_update = V_big*h_big;
+    f = f + f_update;
+    beta_acc = beta_acc * beta;
     
-    update_norm = norm(V_big*h_big);
     out.appr(:,k) = f;
-    out.update(k) = update_norm;  % norm of update
+    out.update(k) = norm(f_update);  % norm of update
     
     
     % keep track of subdiagonal entries of Hessenberg matrix
