@@ -14,9 +14,6 @@ Please **do not** modify any original function. One should copy it and create a 
 
 ## demos
 
-- `demo_exp_fom_last_update`:  using fom with last col update to compute exp.
-- `demo_invsqrt_fom_last_update`:  using fom with last col update to compute invsqrt
-- `demo_log_fom_last_update`:  using fom with last col update to compute log
-- `demo_exp_sfom_last_update`:  using fsom with last col update to compute exp.
-- `demo_invsqrt_sfom_last_update`:  using sfom with last col update to compute invsqrt
-- `demo_log_sfom_last_update`:  using sfom with last col update to compute log
+- `demo_xxx_fom_last_update`:  using fom with last col update to compute xxx.
+- `demo_xxx_sfom_last_update`:  using fsom with last col update to compute xxx
+- `demo_xxx_all_methods`: test on all methods on xxx

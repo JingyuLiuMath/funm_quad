@@ -28,7 +28,6 @@ A = -s*A;
 b = ones(N^2, 1);
 b = b/norm(b);
 
-
 %% choose parameters for the FUNM_QUAD restart algorithm
 % jingyu: tol and stopping_accruacy are modified
 addpath('funm_quad')
@@ -96,7 +95,7 @@ t_s = toc;
 num_it = length(out_s.num_quadpoints);
 rel_err = norm(f - f_s) / norm(f);
 fprintf("iter rel_err time\n");
-fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_t);
+fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_s);
 s_rel_err0 = norm(out_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_s.sketching));
