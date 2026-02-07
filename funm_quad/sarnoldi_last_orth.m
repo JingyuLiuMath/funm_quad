@@ -1,18 +1,4 @@
-function [ w,H,h,breakdown,accuracy_flag] = sketched_arnoldi( A,m,H,s,param )
-%ARNOLDI   Extend a given Arnoldi decomposition (V_big,H) of dimension s
-%  to dimension m. This file has been adapted from the FUNM_KRYL code
-%  described in 
-%
-%  M. Afanasjew, M. Eiermann, O. G. Ernst, and S. G\"{u}ttel (2008):
-%  Implementation of a restarted Krylov subspace method for the evaluation
-%  of matrix functions, Linear Algebra Appl., 429:2293--2314.
-%
-%  It is now part of the FUNM_QUAD code described in 
-%
-%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and 
-%  stable Arnoldi restarts for matrix functions based on quadrature,
-%  SIAM J. Matrix Anal. Appl., 35:661--683, 2014.
-%
+function [ w,H,h,breakdown,accuracy_flag] = sarnoldi_last_orth( A,m,H,s,param )
 
 accuracy_flag = 0;
 fm = 0;
@@ -100,5 +86,13 @@ for k = s:m,
     
 end
 
+% update.
+c = V_big(:,1 : m) \ w;
+% c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
+w = w - V_big(:,1 : m) * c;
+H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
+norm_w = norm(w);
+H(m+1,m) = H(m+1,m) * norm_w;
+w = w / norm_w;
 h = H(m+1,m);
 H = H(1:m,1:m);

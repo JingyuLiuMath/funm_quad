@@ -1,5 +1,4 @@
-function [f,out,param] = funm_quad_fom_last_update_sarnoldi(A,b,param)
-% funm_quad with last col update.
+function [f,out,param] = funm_quad_fom_last_orth_tarnoldi(A,b,param)
 
 if nargin < 3,
     param = struct;
@@ -68,18 +67,6 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
-global S;
-if param.sketch_dim_type == "add"
-    sketch_size = ceil(m + param.sketch_dim_factor);
-elseif param.sketch_dim_type == "prod"
-    sketch_size = ceil(m * param.sketch_dim_factor);
-end
-S = randn(sketch_size, n);  % sketching matrix.
-
-global SV_big
-SV_big = zeros(sketch_size, alloc);
-global SAV_big
-SAV_big = zeros(sketch_size, alloc);
 
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
@@ -122,19 +109,16 @@ for k = 1:param.max_restarts,
         H = [];
     end
     
-    v_old = v;
-    Sv  = S * v;
-    beta = norm(Sv);
-    V_big(:, 1) = v / beta;
-    SV_big(:, 1) = Sv / beta;
+    beta = norm(b);
+    V_big(:,ell+1) = v / beta;
     
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ v,H,eta,breakdown, accuracy_flag ] = sketched_arnoldi_last_update( A,m+ell,H,ell+1,param );
+        [ v,H,eta,breakdown, accuracy_flag ] = tarnoldi_last_orth( A,m+ell,H,ell+1,param );
         % rhs = V \ v_old;
-        rhs = beta * unit(1, m);  % this is because v_old = s_beta * V(:, 1).
+        rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
     end
     
     if breakdown
@@ -443,7 +427,7 @@ for k = 1:param.max_restarts,
             
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm(h2-h1)/norm(f) < tol
+                if norm((h2-h1))/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end

@@ -1,4 +1,5 @@
-function [f,out,param] = funm_quad_fom_last_update_tarnoldi(A,b,param)
+function [f,out,param] = funm_quad_sfom_last_sorth_sarnoldi(A,b,param)
+
 
 if nargin < 3,
     param = struct;
@@ -67,15 +68,30 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
+global S;
+if param.sketch_dim_type == "add"
+    sketch_size = ceil(m + param.sketch_dim_factor);
+elseif param.sketch_dim_type == "prod"
+    sketch_size = ceil(m * param.sketch_dim_factor);
+end
 
+global SV_big
+SV_big = zeros(sketch_size, alloc);
+global SAV_big
+SAV_big = zeros(sketch_size, alloc);
+
+max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
 end
 
 beta_acc = 1;
+update_norm = inf;
 % restart loop starts here
 for k = 1:param.max_restarts,
+    S = randn(sketch_size, n);  % sketching matrix.
+
     % check whether a stop condition is satisfied
     if str2double(out.stop_condition(1)),
         break
@@ -108,18 +124,35 @@ for k = 1:param.max_restarts,
     else
         H = [];
     end
-    
-    v_old = v;
-    beta = norm(b);
-    V_big(:,ell+1) = v / beta;
-    
+
+    Sv  = S * v;
+    beta = norm(Sv);
+    V_big(:, 1) = v / beta;
+    SV_big(:, 1) = Sv / beta;
+
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ v,H,eta,breakdown, accuracy_flag ] = tarnoldi_last_update( A,m+ell,H,ell+1,param );
-        % rhs = V \ v_old;
-        rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
+        if update_norm > param.ada_tol * norm(f)
+            % Arnoldi with orth basis
+            if param.standard == "orth_fom"
+                tmp_param = param;
+                tmp_param.truncation_length = inf;
+                [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,tmp_param );
+                rhs = beta * unit(1, m);
+            elseif param.standard == "nonorth_fom"
+                % One may also use FOM without sketching in this case.
+                [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi_last_update( A,m+ell,H,ell+1,param );
+                % rhs = V \ v_old;
+                rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
+            end
+            out.sketching(k) = 0;
+        else
+            [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi( A,m+ell,H,ell+1,param );
+            rhs = beta * unit(1, m);
+            out.sketching(k) = 1;
+        end
     end
     
     if breakdown
@@ -428,18 +461,22 @@ for k = 1:param.max_restarts,
             
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm((h2-h1))/norm(f) < tol
+                if norm(h2-h1)/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     out.num_quadpoints(k) = N;
                     converged = 1;
-                else
+                elseif N < max_num_quad_points
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     h1 = h2;
                     N = N2;
+                else
+                    fprintf("quadrature does not converge but exceed max\n");
+                    out.num_quadpoints(k) = N;
+                    converged = 1;
                 end
             end
         end
@@ -458,9 +495,10 @@ for k = 1:param.max_restarts,
     f_update = V_big*h_big;
     f = f + f_update;
     beta_acc = beta_acc * beta;
-    
+
+    update_norm = norm(f_update);
     out.appr(:,k) = f;
-    out.update(k) = norm(f_update);  % norm of update
+    out.update(k) = update_norm;  % norm of update
     
     
     % keep track of subdiagonal entries of Hessenberg matrix

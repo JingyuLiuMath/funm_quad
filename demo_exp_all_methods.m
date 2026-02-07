@@ -3,14 +3,15 @@ close all;
 rng(2026);
 maxNumCompThreads(1);
 
+m = 70;
 truncation_length = 5;
 sk_type = "prod";
-sk_factor = 1.2;
+sk_factor = 2;
 ada_tol = inf;  % inf means always sketching
 standard = "nonorth_fom";
 
 %% Build discretization matrix for 2D convection-diffusion problem 
-nu = 1;
+nu = 100;
 N = 500;
 D2 = (N+1)^2*gallery('tridiag',N);
 I = speye(N);
@@ -28,11 +29,24 @@ A = -s*A;
 b = ones(N^2, 1);
 b = b/norm(b);
 
+load exact_solutions.mat;
+f_ex = zeros(N^2, 1);
+if N == 500
+    switch nu
+        case 0
+            f_ex = exact_convdiff_1;
+        case 100
+            f_ex = exact_convdiff_2;
+        case 200
+            f_ex = exact_convdiff_3;
+    end
+end
+
 %% choose parameters for the FUNM_QUAD restart algorithm
 % jingyu: tol and stopping_accruacy are modified
 addpath('funm_quad')
 param.function = 'exp';
-param.restart_length = 30;          % each restart cycle consists of 70 Arnoldi iterations
+param.restart_length = m;          % each restart cycle consists of 70 Arnoldi iterations
 param.max_restarts = 15;            % perform at most 15 restart cycles
 param.tol = 1e-7;                   % tolerance for quadrature rule
 param.hermitian = 0;                % the matrix A is Hermitian
@@ -44,7 +58,7 @@ param.inner_product = @(a,b) b'*a;  % use standard Euclidean inner product
 param.thick = [];                   % no implicit deflation is performed
 param.min_decay = .95;              % we desire linear error reduction of rate < .95 
 param.waitbar = 0;                  % show waitbar 
-param.reorth_number = 1;            % #reorthogonalizations
+param.reorth_number = 0;            % #reorthogonalizations
 param.truncation_length = inf;      % truncation length for Arnoldi 
 param.verbose = 1;                  % print information about progress of algorithm
 
@@ -62,11 +76,11 @@ fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t)
 fprintf("\n\n");
 
-fprintf("fom with last update using t-arnoldi\n");
+fprintf("fom-t\n");
 t_param = param;
 t_param.truncation_length = truncation_length;
 tic;
-[f_fom_t, out_fom_t] = funm_quad_fom_last_update_tarnoldi(A,b,t_param);
+[f_fom_t, out_fom_t] = funm_quad_fom_last_orth_tarnoldi(A,b,t_param);
 t_fom_t = toc;
 
 num_it = length(out_fom_t.num_quadpoints);
@@ -77,7 +91,7 @@ t_rel_err0 = norm(out_fom_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", t_rel_err0);
 fprintf("\n\n");
 
-fprintf("sfom with last update using t-arnoldi\n");
+fprintf("sfom-t\n");
 t_param = param;
 t_param.truncation_length = truncation_length;
 t_param.sketch_dim_type = sk_type;
@@ -85,7 +99,7 @@ t_param.sketch_dim_factor = sk_factor;
 t_param.ada_tol = ada_tol;
 t_param.standard = standard;
 tic;
-[f_sfom_t, out_sfom_t] = funm_quad_sfom_last_update_tarnoldi(A,b,t_param);
+[f_sfom_t, out_sfom_t] = funm_quad_sfom_last_sorth_tarnoldi(A,b,t_param);
 t_sfom_t = toc;
 
 num_it = length(out_sfom_t.num_quadpoints);
@@ -97,12 +111,12 @@ fprintf("initial err: %e\n", t_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_sfom_t.sketching));
 fprintf("\n\n");
 
-fprintf("fom with last update using s-arnoldi\n");
+fprintf("fom-s\n");
 s_param = param;
 s_param.sketch_dim_type = sk_type;
 s_param.sketch_dim_factor = sk_factor;
 tic;
-[f_fom_s, out_fom_s] = funm_quad_fom_last_update_sarnoldi(A,b,s_param);
+[f_fom_s, out_fom_s] = funm_quad_fom_last_orth_sarnoldi(A,b,s_param);
 t_fom_s = toc;
 
 num_it = length(out_fom_s.num_quadpoints);
@@ -113,14 +127,14 @@ s_rel_err0 = norm(out_fom_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("\n\n");
 
-fprintf("sfom with last update using s-arnoldi\n");
+fprintf("sfom-s\n");
 s_param = param;
 s_param.sketch_dim_type = sk_type;
 s_param.sketch_dim_factor = sk_factor;
 s_param.ada_tol = ada_tol;
 s_param.standard = standard;
 tic;
-[f_sfom_s, out_sfom_s] = funm_quad_sfom_last_update_sarnoldi(A,b,s_param);
+[f_sfom_s, out_sfom_s] = funm_quad_sfom_last_sorth_sarnoldi(A,b,s_param);
 t_sfom_s = toc;
 
 num_it = length(out_sfom_s.num_quadpoints);
@@ -134,6 +148,12 @@ fprintf("\n\n");
 
 %% print table
 fprintf("\n\n");
+
+if norm(f_ex) ~= 0
+    err_ex = norm(f - f_ex) / norm(f_ex);
+    fprintf("err_ex: %e\n", err_ex);
+end
+
 num_it = length(out.num_quadpoints);
 rel_err = norm(f - f) / norm(f);
 fprintf("benchmark & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t);

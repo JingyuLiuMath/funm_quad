@@ -1,4 +1,4 @@
-function [ w,H,h,breakdown,accuracy_flag] = sketched_arnoldi_last_update( A,m,H,s,param )
+function [ w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_orth( A,m,H,s,param )
 %ARNOLDI   Extend a given Arnoldi decomposition (V_big,H) of dimension s
 %  to dimension m. This file has been adapted from the FUNM_KRYL code
 %  described in 
@@ -29,10 +29,7 @@ if param.max_restarts == 1
     end
 end
 
-global S;
-global V_big;
-global SV_big;
-global SAV_big;
+global V_big
 H(m+1,m) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
@@ -46,32 +43,27 @@ for k = s:m,
     else
         w = A(w);
     end
-    Sw = S * w;
-    SAV_big(:, k) = Sw;
     
     sj = max([1,k-trunc+1]):k;
     if(k==s), sj = 1; end
     for r = 0:reo,
         for j = sj:k,
-            ip = param.inner_product(Sw,SV_big(:,j));
+            ip = param.inner_product(w,V_big(:,j));
             H(j,k) = H(j,k) + ip(1);
-            Sw = Sw - SV_big(:,j) * ip(1);
-            w = w - V_big(:, j) * ip(1);
+            w = w - V_big(:,j)*ip(1);
         end
     end
     
-    H(k+1,k) = sqrt(param.inner_product(Sw, Sw));
+    H(k+1,k) = sqrt(param.inner_product(w,w));
     
     if abs(H(k+1,k)) < k*eps*norm(H(1:k+1,k))
         breakdown = k;
         break
     end
     
-    Sw = Sw / H(k + 1, k);
-    w = w / H(k + 1, k);
+    w = (1/H(k+1,k))*w;
     if k < m
-        SV_big(:, k + 1) = Sw;
-        V_big(:, k + 1) = w;
+        V_big(:,k+1) = w;
     end
     if param.max_restarts == 1 && (~mod(k,10) && k >= 20),
         if isa(fm,'function_handle')
@@ -101,10 +93,12 @@ for k = s:m,
 end
 
 % update.
-% c = V_big(:,1 : m) \ w;
-c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
+c = V_big(:,1 : m) \ w;
+% c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
 w = w - V_big(:,1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
-
+norm_w = norm(w);
+H(m+1,m) = H(m+1,m) * norm_w;
 h = H(m+1,m);
+w = w / norm_w;
 H = H(1:m,1:m);

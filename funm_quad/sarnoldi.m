@@ -1,18 +1,4 @@
-function [ w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_update( A,m,H,s,param )
-%ARNOLDI   Extend a given Arnoldi decomposition (V_big,H) of dimension s
-%  to dimension m. This file has been adapted from the FUNM_KRYL code
-%  described in 
-%
-%  M. Afanasjew, M. Eiermann, O. G. Ernst, and S. G\"{u}ttel (2008):
-%  Implementation of a restarted Krylov subspace method for the evaluation
-%  of matrix functions, Linear Algebra Appl., 429:2293--2314.
-%
-%  It is now part of the FUNM_QUAD code described in 
-%
-%  A. Frommer, S. G\"{u}ttel, and M. Schweitzer: Efficient and 
-%  stable Arnoldi restarts for matrix functions based on quadrature,
-%  SIAM J. Matrix Anal. Appl., 35:661--683, 2014.
-%
+function [ w,H,h,breakdown,accuracy_flag] = sarnoldi( A,m,H,s,param )
 
 accuracy_flag = 0;
 fm = 0;
@@ -29,7 +15,10 @@ if param.max_restarts == 1
     end
 end
 
-global V_big
+global S;
+global V_big;
+global SV_big;
+global SAV_big;
 H(m+1,m) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
@@ -43,27 +32,32 @@ for k = s:m,
     else
         w = A(w);
     end
+    Sw = S * w;
+    SAV_big(:, k) = Sw;
     
     sj = max([1,k-trunc+1]):k;
     if(k==s), sj = 1; end
     for r = 0:reo,
         for j = sj:k,
-            ip = param.inner_product(w,V_big(:,j));
+            ip = param.inner_product(Sw,SV_big(:,j));
             H(j,k) = H(j,k) + ip(1);
-            w = w - V_big(:,j)*ip(1);
+            Sw = Sw - SV_big(:,j) * ip(1);
+            w = w - V_big(:, j) * ip(1);
         end
     end
     
-    H(k+1,k) = sqrt(param.inner_product(w,w));
+    H(k+1,k) = sqrt(param.inner_product(Sw, Sw));
     
     if abs(H(k+1,k)) < k*eps*norm(H(1:k+1,k))
         breakdown = k;
         break
     end
     
-    w = (1/H(k+1,k))*w;
+    Sw = Sw / H(k + 1, k);
+    w = w / H(k + 1, k);
     if k < m
-        V_big(:,k+1) = w;
+        SV_big(:, k + 1) = Sw;
+        V_big(:, k + 1) = w;
     end
     if param.max_restarts == 1 && (~mod(k,10) && k >= 20),
         if isa(fm,'function_handle')
@@ -91,12 +85,6 @@ for k = s:m,
     end
     
 end
-
-% update.
-% c = V_big(:,1 : m) \ w;
-c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
-w = w - V_big(:,1 : m) * c;
-H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 
 h = H(m+1,m);
 H = H(1:m,1:m);
