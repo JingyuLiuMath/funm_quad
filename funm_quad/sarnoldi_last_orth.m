@@ -35,7 +35,7 @@ for k = s:m,
     Sw = S * w;
     SAV_big(:, k) = Sw;
     
-    sj = max([1,k-trunc+1]):k;
+    sj = max([1,k-trunc+1]);
     if(k==s), sj = 1; end
     for r = 0:reo,
         for j = sj:k,
