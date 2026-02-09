@@ -87,7 +87,7 @@ num_it = length(out_fom_t.num_quadpoints);
 rel_err = norm(f - f_fom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_fom_t);
-t_rel_err0 = norm(out_fom_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+t_rel_err0 = norm(out_fom_t.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", t_rel_err0);
 fprintf("\n\n");
 
@@ -106,7 +106,7 @@ num_it = length(out_sfom_t.num_quadpoints);
 rel_err = norm(f - f_sfom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_t);
-t_rel_err0 = norm(out_sfom_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+t_rel_err0 = norm(out_sfom_t.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", t_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_sfom_t.sketching));
 fprintf("\n\n");
@@ -123,7 +123,7 @@ num_it = length(out_fom_s.num_quadpoints);
 rel_err = norm(f - f_fom_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_fom_s);
-s_rel_err0 = norm(out_fom_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+s_rel_err0 = norm(out_fom_s.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("\n\n");
 
@@ -134,14 +134,14 @@ ss_param.sketch_dim_factor = sk_factor;
 ss_param.ada_tol = ada_tol;
 ss_param.standard = standard;
 tic;
-[f_sfom_s, out_sfom_s] = funm_quad_sfom_last_sorth_sarnoldi(A,b,ss_param);
+[f_sfom_s, out_sfom_s] = funm_quad_sfom_last_orth_sarnoldi(A,b,ss_param);
 t_sfom_s = toc;
 
 num_it = length(out_sfom_s.num_quadpoints);
 rel_err = norm(f - f_sfom_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_s);
-s_rel_err0 = norm(out_sfom_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+s_rel_err0 = norm(out_sfom_s.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_sfom_s.sketching));
 fprintf("\n\n");
@@ -159,10 +159,9 @@ num_it = length(out_afom_t.num_quadpoints);
 rel_err = norm(f - f_afom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_afom_t);
-at_rel_err0 = norm(out_afom_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+at_rel_err0 = norm(out_afom_t.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", at_rel_err0);
 fprintf("\n\n");
-
 
 %% save data
 file_name = "./data/invsqrt/invsqrt_" + string(N) + "_" + string(m) + ".mat";
@@ -204,7 +203,7 @@ fprintf("sFOM-s & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_s);
 
 num_it = length(out_afom_t.num_quadpoints);
 rel_err = norm(f - f_afom_t) / norm(f);
-fprintf("aFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_s);
+fprintf("aFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_afom_t);
 
 %% plot convergence curve and number of quadrature points
 if ~isempty(out.appr)

@@ -149,7 +149,7 @@ at_param.truncation_length = truncation_length;
 at_param.restart_length = m_max;
 at_param.cond_tol = 1e8;
 tic;
-[f_afom_t, out_afom_t] = funm_quad_ada_fom_last_sorth_tarnoldi(A,b,at_param);
+[f_afom_t, out_afom_t] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,at_param);
 t_afom_t = toc;
 
 num_it = length(out_afom_t.num_quadpoints);
@@ -200,7 +200,7 @@ fprintf("sFOM-s & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_s);
 
 num_it = length(out_afom_t.num_quadpoints);
 rel_err = norm(f - f_afom_t) / norm(f);
-fprintf("aFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_s);
+fprintf("aFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_afom_t);
 
 %% plot convergence curve and number of quadrature points
 if ~isempty(out.appr)

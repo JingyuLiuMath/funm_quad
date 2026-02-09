@@ -7,8 +7,8 @@ m = 50;
 truncation_length = 5;
 sk_type = "prod";
 sk_factor = 2;
-m_max = 150;
-cond_tol = 1e7;
+m_max = 100;
+cond_tol = 1e6;
 
 %% Initialize 2D Laplacian + some non-Herm part (no practical background).
 nu = 1;
@@ -71,7 +71,7 @@ num_it = length(out_t.num_quadpoints);
 rel_err = norm(f - f_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_t);
-t_rel_err0 = norm(out_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+t_rel_err0 = norm(out_t.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", t_rel_err0);
 fprintf("\n\n");
 
@@ -87,11 +87,11 @@ num_it = length(out_s.num_quadpoints);
 rel_err = norm(f - f_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_s);
-s_rel_err0 = norm(out_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+s_rel_err0 = norm(out_s.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("\n\n");
 
-fprintf("ada fom-t\n");
+fprintf("afom-t\n");
 at_param = param;
 at_param.truncation_length = truncation_length;
 at_param.restart_length = m_max;
@@ -104,7 +104,7 @@ num_it = length(out_at.num_quadpoints);
 rel_err = norm(f - f_at) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_a);
-t_rel_err0 = norm(out_at.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+t_rel_err0 = norm(out_at.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", t_rel_err0);
 fprintf("\n\n");
 
@@ -118,7 +118,7 @@ if ~isempty(out.appr)
     hold on;
     semilogy(vecnorm(f - out_t.appr) / norm(f), '--x', "DisplayName", "fom-t");
     semilogy(vecnorm(f - out_s.appr) / norm(f), '--*', "DisplayName", "fom-s");
-    semilogy(vecnorm(f - out_at.appr) / norm(f), '--o', "DisplayName", "ada fom-t");
+    semilogy(vecnorm(f - out_at.appr) / norm(f), '--o', "DisplayName", "afom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -129,7 +129,7 @@ if ~isempty(out.appr)
     hold on;
     semilogy(out_t.update, '--x', "DisplayName", "fom-t");
     semilogy(out_s.update, '--*', "DisplayName", "fom-s");
-    semilogy(out_at.update, '--o', "DisplayName", "ada fom-t");
+    semilogy(out_at.update, '--o', "DisplayName", "afom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -140,14 +140,14 @@ if ~isempty(out.appr)
     hold on;
     plot(out_t.num_quadpoints, '--x', "DisplayName", "fom-t");
     plot(out_s.num_quadpoints, '--*', "DisplayName", "fom-s");
-    plot(out_at.num_quadpoints, '--*', "DisplayName", "ada fom-t");
+    plot(out_at.num_quadpoints, '--*', "DisplayName", "afom-t");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');
     ylabel('num of quad points');
 
     figure();
-    plot(out_at.dim, '--*', "DisplayName", "ada fom-t");
+    plot(out_at.dim, '--*', "DisplayName", "afom-t");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');
