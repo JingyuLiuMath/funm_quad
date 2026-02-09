@@ -263,6 +263,7 @@ if ~isempty(out.appr)
 
     figure();
     plot(out_afom_t.dim, '--o', "DisplayName", "afom-t");
+    legend;
     xticks(1 : max_iter)
     xlabel('cycle');
     ylabel('num of subspace dim');
