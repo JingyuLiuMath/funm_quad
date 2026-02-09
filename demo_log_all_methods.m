@@ -9,10 +9,15 @@ sk_type = "prod";
 sk_factor = 2;
 ada_tol = inf;  % inf means always sketching
 standard = "nonorth_fom";
+nu = 1;
+N = 500;
+
+fprintf("m: %d\n", m);
+fprintf("truncation_length: %d\n", truncation_length);
+fprintf("nu: %d\n", nu);
+fprintf("N: %d\n", N);
 
 %% Initialize 2D Laplacian + some non-Herm part (no practical background).
-nu = 1e-12;
-N = 500;
 e = ones(N,1);
 A = (N+1)^2*gallery('poisson',N);
 I = speye(N);
@@ -49,7 +54,7 @@ param.reorth_number = 0;              % #reorthogonalizations
 param.truncation_length = inf;      % truncation length for Arnoldi 
 param.verbose = 1;                  % print information about progress of algorithm
 
-%% compute exp(A)b by quadrature-based restart algorithm
+%% compute log(A)b by quadrature-based restart algorithm
 close all;
 fprintf("\n\n");
 fprintf("benchmark\n");
@@ -133,6 +138,15 @@ fprintf("initial err: %e\n", s_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_sfom_s.sketching));
 fprintf("\n\n");
 
+%% save data
+file_name = "./data/log/log_" + string(N) + "_" + string(m) + ".mat";
+save(file_name, ...
+    "f", "out", "t", ...
+    "f_fom_t", "out_fom_t", "t_fom_t", ...
+    "f_sfom_t", "out_sfom_t", "t_sfom_t", ...
+    "f_fom_s", "out_fom_s", "t_fom_s", ...
+    "f_sfom_s", "out_sfom_s", "t_sfom_s");
+
 %% print table
 fprintf("\n\n");
 num_it = length(out.num_quadpoints);
@@ -175,6 +189,12 @@ if ~isempty(out.appr)
     xticks(1 : max_iter);
     xlabel('cycle');
     ylabel('rel error compared to benchmark');
+    file_name = "log_rel_err_" + string(N) + "_" + string(m);
+    saveas(gcf, "./figure/log/" + file_name + ".png", "png");
+    saveas(gcf, "./figure/log/" + file_name + ".eps", "epsc");
+    file_name = "log_norm_update_" + string(N) + "_" + string(m);
+    saveas(gcf, "./figure/log/" + file_name + ".png", "png");
+    saveas(gcf, "./figure/log/" + file_name + ".eps", "epsc");
 
     figure();
     semilogy(out.update, 'g--+', "DisplayName", "benchmark");
@@ -199,4 +219,7 @@ if ~isempty(out.appr)
     xticks(1 : max_iter)
     xlabel('cycle');
     ylabel('num of quad points');
+    file_name = "log_num_quad_" + string(N) + "_" + string(m);
+    saveas(gcf, "./figure/log/" + file_name + ".png", "png");
+    saveas(gcf, "./figure/log/" + file_name + ".eps", "epsc");
 end
