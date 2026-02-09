@@ -3,7 +3,8 @@ close all;
 rng(2026);
 maxNumCompThreads(1);
 
-m = 70;
+% m = 70;
+m = 200;
 truncation_length = 5;
 sk_type = "prod";
 sk_factor = 2;
