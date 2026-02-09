@@ -7,6 +7,8 @@ m = 50;
 truncation_length = 5;
 sk_type = "prod";
 sk_factor = 2;
+m_max = 150;
+cond_tol = 1e7;
 
 %% Build discretization matrix for 2D convection-diffusion problem 
 nu = 1;
@@ -92,38 +94,65 @@ s_rel_err0 = norm(out_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("\n\n");
 
+fprintf("afom-t\n");
+at_param = param;
+at_param.truncation_length = truncation_length;
+at_param.restart_length = m_max;
+at_param.cond_tol = cond_tol;
+tic;
+[f_at, out_at] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,at_param);
+t_a = toc;
+
+num_it = length(out_at.num_quadpoints);
+rel_err = norm(f - f_at) / norm(f);
+fprintf("iter rel_err time\n");
+fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_a);
+t_rel_err0 = norm(out_at.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+fprintf("initial err: %e\n", t_rel_err0);
+fprintf("\n\n");
+
 %% plot convergence curve and number of quadrature points
 if ~isempty(out.appr)
     max_iter = max([length(out.appr), length(out_t.appr), length(out_s.appr)]);
     
     close all;
     figure();
-    semilogy(vecnorm(f - out.appr) / norm(f), 'g--+', "DisplayName", "benchmark");
+    semilogy(vecnorm(f - out.appr) / norm(f), '--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(vecnorm(f - out_t.appr) / norm(f), 'r--x', "DisplayName", "fom-t");
-    semilogy(vecnorm(f - out_s.appr) / norm(f), 'b--*', "DisplayName", "fom-s");
+    semilogy(vecnorm(f - out_t.appr) / norm(f), '--x', "DisplayName", "fom-t");
+    semilogy(vecnorm(f - out_s.appr) / norm(f), '--*', "DisplayName", "fom-s");
+    semilogy(vecnorm(f - out_at.appr) / norm(f), '--o', "DisplayName", "ada fom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
     ylabel('rel error compared to benchmark');
 
     figure();
-    semilogy(out.update, 'g--+', "DisplayName", "benchmark");
+    semilogy(out.update, '--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(out_t.update, 'r--x', "DisplayName", "fom-t");
-    semilogy(out_s.update, 'b--*', "DisplayName", "fom-s");
+    semilogy(out_t.update, '--x', "DisplayName", "fom-t");
+    semilogy(out_s.update, '--*', "DisplayName", "fom-s");
+    semilogy(out_at.update, '--o', "DisplayName", "ada fom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
     ylabel('update norm');
 
     figure();
-    plot(out.num_quadpoints, 'g--+', "DisplayName", "benchmark");
+    plot(out.num_quadpoints, '--+', "DisplayName", "benchmark");
     hold on;
-    plot(out_t.num_quadpoints, 'r--x', "DisplayName", "fom-t");
-    plot(out_s.num_quadpoints, 'b--*', "DisplayName", "fom-s");
+    plot(out_t.num_quadpoints, '--x', "DisplayName", "fom-t");
+    plot(out_s.num_quadpoints, '--*', "DisplayName", "fom-s");
+    plot(out_at.num_quadpoints, '--*', "DisplayName", "ada fom-t");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');
     ylabel('num of quad points');
+
+    figure();
+    plot(out_at.dim, '--*', "DisplayName", "ada fom-t");
+    legend;
+    xticks(1 : max_iter)
+    xlabel('cycle');
+    ylabel('num of subspace dim');
 end
