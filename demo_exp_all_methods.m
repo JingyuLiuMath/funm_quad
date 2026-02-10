@@ -81,7 +81,7 @@ tic
 [f,out] = funm_quad(A,b,param);
 t = toc;
 
-num_it = length(out.appr);
+num_it = size(out.appr, 2);
 rel_err = norm(f - f) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t)
@@ -95,7 +95,7 @@ tic;
 [f_fom_t, out_fom_t] = funm_quad_fom_last_orth_tarnoldi(A,b,t_param);
 t_fom_t = toc;
 
-num_it = length(out_fom_t.appr);
+num_it = size(out_fom_t.appr, 2);
 rel_err = norm(f - f_fom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_fom_t);
@@ -115,7 +115,7 @@ tic;
 [f_sfom_t, out_sfom_t] = funm_quad_sfom_last_sorth_tarnoldi(A,b,st_param);
 t_sfom_t = toc;
 
-num_it = length(out_sfom_t.appr);
+num_it = size(out_sfom_t.appr, 2);
 rel_err = norm(f - f_sfom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_t);
@@ -133,7 +133,7 @@ tic;
 [f_fom_s, out_fom_s] = funm_quad_fom_last_orth_sarnoldi(A,b,s_param);
 t_fom_s = toc;
 
-num_it = length(out_fom_s.appr);
+num_it = size(out_fom_s.appr, 2);
 rel_err = norm(f - f_fom_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_fom_s);
@@ -152,7 +152,7 @@ tic;
 [f_sfom_s, out_sfom_s] = funm_quad_sfom_last_sorth_sarnoldi(A,b,ss_param);
 t_sfom_s = toc;
 
-num_it = length(out_sfom_s.appr);
+num_it = size(out_sfom_s.appr, 2);
 rel_err = norm(f - f_sfom_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_s);
@@ -171,7 +171,7 @@ tic;
 [f_afom_t, out_afom_t] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,at_param);
 t_afom_t = toc;
 
-num_it = length(out_afom_t.appr);
+num_it = size(out_afom_t.appr, 2);
 rel_err = norm(f - f_afom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_afom_t);
@@ -189,7 +189,7 @@ tic;
 [f_asfom_t, out_asfom_t] = funm_quad_ada_sfom_last_sorth_tarnoldi(A,b,ast_param);
 t_asfom_t = toc;
 
-num_it = length(out_asfom_t.appr);
+num_it = size(out_asfom_t.appr, 2);
 rel_err = norm(f - f_asfom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_asfom_t);
@@ -216,43 +216,43 @@ if norm(f_ex) ~= 0
     fprintf("err_ex: %e\n", err_ex);
 end
 
-num_it = length(out.appr);
+num_it = size(out.appr, 2);
 rel_err = norm(f - f) / norm(f);
 fprintf("benchmark & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t);
 
-num_it = length(out_fom_t.appr);
+num_it = size(out_fom_t.appr, 2);
 rel_err = norm(f - f_fom_t) / norm(f);
 fprintf("FOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_fom_t);
 
-num_it = length(out_sfom_t.appr);
+num_it = size(out_sfom_t.appr, 2);
 rel_err = norm(f - f_sfom_t) / norm(f);
 fprintf("sFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_t);
 
-num_it = length(out_fom_s.appr);
+num_it = size(out_fom_s.appr, 2);
 rel_err = norm(f - f_fom_s) / norm(f);
 fprintf("FOM-s & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_fom_s);
 
-num_it = length(out_sfom_s.appr);
+num_it = size(out_sfom_s.appr, 2);
 rel_err = norm(f - f_sfom_s) / norm(f);
 fprintf("sFOM-s & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_s);
 
-num_it = length(out_afom_t.appr);
+num_it = size(out_afom_t.appr, 2);
 rel_err = norm(f - f_afom_t) / norm(f);
 fprintf("aFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_afom_t);
 
-num_it = length(out_asfom_t.appr);
+num_it = size(out_asfom_t.appr, 2);
 rel_err = norm(f - f_asfom_t) / norm(f);
 fprintf("asFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_asfom_t);
 
 %% plot convergence curve and number of quadrature points
 if ~isempty(out.appr)
-    max_iter = max([length(out.appr), ...
-        length(out_fom_t.appr), ...
-        length(out_fom_s.appr), ...
-        length(out_sfom_t.appr), ...
-        length(out_sfom_s.appr), ...
-        length(out_afom_t.appr), ...
-        length(out_asfom_t.appr)]);
+    max_iter = max([size(out.appr, 2), ...
+        size(out_fom_t.appr, 2), ...
+        size(out_fom_s.appr, 2), ...
+        size(out_sfom_t.appr, 2), ...
+        size(out_sfom_s.appr, 2), ...
+        size(out_afom_t.appr, 2), ...
+        size(out_asfom_t.appr, 2)]);
 
     close all;
     figure();
