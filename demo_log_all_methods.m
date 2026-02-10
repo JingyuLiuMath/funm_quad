@@ -3,8 +3,10 @@ close all;
 rng(2026);
 maxNumCompThreads(1);
 
-% m = 70;
+% m = 50;
+% m_max = 100;
 m = 200;
+m_max = 500;
 truncation_length = 5;
 sk_type = "prod";
 sk_factor = 2;
@@ -12,7 +14,6 @@ ada_tol = inf;  % inf means always sketching
 standard = "nonorth_fom";
 nu = 1;
 N = 500;
-m_max = 500;
 cond_tol = 1e6;
 
 fprintf("m: %d\n", m);
@@ -59,7 +60,7 @@ param.reorth_number = 0;              % #reorthogonalizations
 param.truncation_length = inf;      % truncation length for Arnoldi 
 param.verbose = 1;                  % print information about progress of algorithm
 
-%% compute log(A)b by quadrature-based restart algorithm
+%% benchmark
 close all;
 fprintf("\n\n");
 fprintf("benchmark\n");
@@ -67,12 +68,13 @@ tic
 [f,out] = funm_quad(A,b,param);
 t = toc;
 
-num_it = length(out.num_quadpoints);
+num_it = length(out.appr);
 rel_err = norm(f - f) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t)
 fprintf("\n\n");
 
+%% fom-t
 fprintf("fom-t\n");
 t_param = param;
 t_param.truncation_length = truncation_length;
@@ -80,7 +82,7 @@ tic;
 [f_fom_t, out_fom_t] = funm_quad_fom_last_orth_tarnoldi(A,b,t_param);
 t_fom_t = toc;
 
-num_it = length(out_fom_t.num_quadpoints);
+num_it = length(out_fom_t.appr);
 rel_err = norm(f - f_fom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_fom_t);
@@ -88,6 +90,7 @@ t_rel_err0 = norm(out_fom_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", t_rel_err0);
 fprintf("\n\n");
 
+%% sfom-t
 fprintf("sfom-t\n");
 st_param = param;
 st_param.truncation_length = truncation_length;
@@ -99,7 +102,7 @@ tic;
 [f_sfom_t, out_sfom_t] = funm_quad_sfom_last_sorth_tarnoldi(A,b,st_param);
 t_sfom_t = toc;
 
-num_it = length(out_sfom_t.num_quadpoints);
+num_it = length(out_sfom_t.appr);
 rel_err = norm(f - f_sfom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_t);
@@ -108,6 +111,7 @@ fprintf("initial err: %e\n", t_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_sfom_t.sketching));
 fprintf("\n\n");
 
+%% fom-s
 fprintf("fom-s\n");
 s_param = param;
 s_param.sketch_dim_type = sk_type;
@@ -116,7 +120,7 @@ tic;
 [f_fom_s, out_fom_s] = funm_quad_fom_last_orth_sarnoldi(A,b,s_param);
 t_fom_s = toc;
 
-num_it = length(out_fom_s.num_quadpoints);
+num_it = length(out_fom_s.appr);
 rel_err = norm(f - f_fom_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_fom_s);
@@ -124,6 +128,7 @@ s_rel_err0 = norm(out_fom_s.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
 fprintf("initial err: %e\n", s_rel_err0);
 fprintf("\n\n");
 
+%% sfom-s
 fprintf("sfom-s\n");
 ss_param = param;
 ss_param.sketch_dim_type = sk_type;
@@ -134,7 +139,7 @@ tic;
 [f_sfom_s, out_sfom_s] = funm_quad_sfom_last_sorth_sarnoldi(A,b,ss_param);
 t_sfom_s = toc;
 
-num_it = length(out_sfom_s.num_quadpoints);
+num_it = length(out_sfom_s.appr);
 rel_err = norm(f - f_sfom_s) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_s);
@@ -143,20 +148,39 @@ fprintf("initial err: %e\n", s_rel_err0);
 fprintf("number of sketching steps: %d\n", sum(out_sfom_s.sketching));
 fprintf("\n\n");
 
+%% afom-t
 fprintf("afom-t\n");
 at_param = param;
 at_param.truncation_length = truncation_length;
 at_param.restart_length = m_max;
-at_param.cond_tol = 1e8;
+at_param.cond_tol = cond_tol;
 tic;
 [f_afom_t, out_afom_t] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,at_param);
 t_afom_t = toc;
 
-num_it = length(out_afom_t.num_quadpoints);
+num_it = length(out_afom_t.appr);
 rel_err = norm(f - f_afom_t) / norm(f);
 fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_afom_t);
 at_rel_err0 = norm(out_afom_t.appr(:, 1) - out.appr(:, 1)) / norm(out.appr(:, 1));
+fprintf("initial err: %e\n", at_rel_err0);
+fprintf("\n\n");
+
+%% asfom-t
+fprintf("asfom-t\n");
+ast_param = param;
+ast_param.truncation_length = truncation_length;
+ast_param.restart_length = m_max;
+ast_param.cond_tol = cond_tol;
+tic;
+[f_asfom_t, out_asfom_t] = funm_quad_ada_sfom_last_sorth_tarnoldi(A,b,ast_param);
+t_asfom_t = toc;
+
+num_it = length(out_asfom_t.appr);
+rel_err = norm(f - f_asfom_t) / norm(f);
+fprintf("iter rel_err time\n");
+fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_asfom_t);
+at_rel_err0 = norm(out_asfom_t.appr(:, 1) - f) / norm(f);
 fprintf("initial err: %e\n", at_rel_err0);
 fprintf("\n\n");
 
@@ -168,7 +192,8 @@ save(file_name, ...
     "f_sfom_t", "out_sfom_t", "t_sfom_t", ...
     "f_fom_s", "out_fom_s", "t_fom_s", ...
     "f_sfom_s", "out_sfom_s", "t_sfom_s", ...
-    "f_afom_t", "out_afom_t", "t_afom_t");
+    "f_afom_t", "out_afom_t", "t_afom_t", ...
+    "f_asfom_t", "out_asfom_t", "t_asfom_t");
 
 %% print table
 fprintf("\n\n");
@@ -178,29 +203,33 @@ if norm(f_ex) ~= 0
     fprintf("err_ex: %e\n", err_ex);
 end
 
-num_it = length(out.num_quadpoints);
+num_it = length(out.appr);
 rel_err = norm(f - f) / norm(f);
 fprintf("benchmark & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t);
 
-num_it = length(out_fom_t.num_quadpoints);
+num_it = length(out_fom_t.appr);
 rel_err = norm(f - f_fom_t) / norm(f);
 fprintf("FOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_fom_t);
 
-num_it = length(out_sfom_t.num_quadpoints);
+num_it = length(out_sfom_t.appr);
 rel_err = norm(f - f_sfom_t) / norm(f);
 fprintf("sFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_t);
 
-num_it = length(out_fom_s.num_quadpoints);
+num_it = length(out_fom_s.appr);
 rel_err = norm(f - f_fom_s) / norm(f);
 fprintf("FOM-s & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_fom_s);
 
-num_it = length(out_sfom_s.num_quadpoints);
+num_it = length(out_sfom_s.appr);
 rel_err = norm(f - f_sfom_s) / norm(f);
 fprintf("sFOM-s & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_sfom_s);
 
-num_it = length(out_afom_t.num_quadpoints);
+num_it = length(out_afom_t.appr);
 rel_err = norm(f - f_afom_t) / norm(f);
 fprintf("aFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_afom_t);
+
+num_it = length(out_asfom_t.appr);
+rel_err = norm(f - f_asfom_t) / norm(f);
+fprintf("asFOM-t & %d & %.4e & %.4e \\\\ \n", num_it, rel_err, t_asfom_t);
 
 %% plot convergence curve and number of quadrature points
 if ~isempty(out.appr)
@@ -209,7 +238,8 @@ if ~isempty(out.appr)
         length(out_fom_s.appr), ...
         length(out_sfom_t.appr), ...
         length(out_sfom_s.appr), ...
-        length(out_afom_t.appr)]);
+        length(out_afom_t.appr), ...
+        length(out_asfom_t.appr)]);
 
     close all;
     figure();
@@ -220,6 +250,7 @@ if ~isempty(out.appr)
     semilogy(vecnorm(f - out_sfom_t.appr) / norm(f), '--d', "DisplayName", "sfom-t");
     semilogy(vecnorm(f - out_sfom_s.appr) / norm(f), '--s', "DisplayName", "sfom-s");
     semilogy(vecnorm(f - out_afom_t.appr) / norm(f), '--o', "DisplayName", "afom-t");
+    semilogy(vecnorm(f - out_asfom_t.appr) / norm(f), '--p', "DisplayName", "asfom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -227,7 +258,6 @@ if ~isempty(out.appr)
     file_name = "log_rel_err_" + string(N) + "_" + string(m);
     saveas(gcf, "./figure/log/" + file_name + ".png", "png");
     saveas(gcf, "./figure/log/" + file_name + ".eps", "epsc");
-
 
     figure();
     semilogy(out.update, '--+', "DisplayName", "benchmark");
@@ -237,6 +267,7 @@ if ~isempty(out.appr)
     semilogy(out_sfom_t.update, '--d', "DisplayName", "sfom-t");
     semilogy(out_sfom_s.update, '--s', "DisplayName", "sfom-s");
     semilogy(out_afom_t.update, '--o', "DisplayName", "afom-t");
+    semilogy(out_asfom_t.update, '--p', "DisplayName", "asfom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');
@@ -253,6 +284,7 @@ if ~isempty(out.appr)
     plot(out_sfom_t.num_quadpoints, '--d', "DisplayName", "sfom-t");
     plot(out_sfom_s.num_quadpoints, '--s', "DisplayName", "sfom-s");
     plot(out_afom_t.num_quadpoints, '--o', "DisplayName", "afom-t");
+    plot(out_asfom_t.num_quadpoints, '--p', "DisplayName", "asfom-t");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');
@@ -263,6 +295,8 @@ if ~isempty(out.appr)
 
     figure();
     plot(out_afom_t.dim, '--o', "DisplayName", "afom-t");
+    hold on;
+    plot(out_asfom_t.dim, '--p', "DisplayName", "asfom-t");
     legend;
     xticks(1 : max_iter)
     xlabel('cycle');

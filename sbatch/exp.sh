@@ -3,9 +3,8 @@
 #SBATCH --job-name=EXP
 #SBATCH --output=EXP_%j.out
 #SBATCH --error=EXP_%j.err
-#SBATCH --nodelist=bigMem4
-#SBATCH --time=18:00:00
-#SBATCH --cpus-per-task=16
+#SBATCH --nodelist=bigMem0
+#SBATCH --time=00:30:00
 
 
 module unload MATLAB

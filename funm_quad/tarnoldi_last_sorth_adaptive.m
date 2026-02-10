@@ -1,9 +1,9 @@
-function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_orth_adaptive( A, m_max, cond_tol, param)
+function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_sorth_adaptive( A, m_max, cond_tol, param)
 
 n = size(A, 1);
 s0 = 30;
-S = randn(s0, n);  % sketching matrix.
 s = s0;
+S = randn(s0, n);  % sketching matrix.
 
 H = zeros(m_max, m_max);
 accuracy_flag = 0;
@@ -42,7 +42,7 @@ for j = 1 : m_max
     else
         w = A(w);
     end
-    
+
     i_start = max([1,j-trunc+1]);
     for r = 0:reo
         for i = i_start:j
@@ -51,18 +51,18 @@ for j = 1 : m_max
             w = w - V_big(:,i)*ip(1);
         end
     end
-    
+
     H(j+1,j) = norm(w);
-    
+
     if abs(H(j+1,j)) < j*eps*norm(H(1:j+1,j))
         breakdown = j;
         break
     end
-    
+
     w = (1/H(j+1,j))*w;
     Sw = S * w;
     if j < m_max
-        V_big(:,j+1) = w;
+        V_big(:, j + 1) = w;
         SV_big(:, j + 1) = Sw;
 
         if cond(SV_big(:, 1 : (j + 1))) > cond_tol
@@ -97,9 +97,8 @@ for j = 1 : m_max
 end
 
 m = j;
-c = V_big(:,1 : m) \ w;
-% c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
-w = w - V_big(:,1 : m) * c;
+c = SV_big(:, 1 : m) \ Sw;
+w = w - V_big(:, 1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 norm_w = norm(w);
 H(m+1,m) = H(m+1,m) * norm_w;

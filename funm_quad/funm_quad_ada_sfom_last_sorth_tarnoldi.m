@@ -1,4 +1,4 @@
-function [f,out,param] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,param)
+function [f,out,param] = funm_quad_ada_sfom_last_sorth_tarnoldi(A,b,param)
 
 if nargin < 3,
     param = struct;
@@ -67,6 +67,7 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
+
 max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
@@ -118,7 +119,7 @@ for k = 1:param.max_restarts,
         % [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
         [ m,v,H,eta,breakdown, accuracy_flag ] = ...
-            tarnoldi_last_orth_adaptive( A,m_max,cond_tol,param );
+            tarnoldi_last_sorth_adaptive( A,m_max,cond_tol,param );
         % rhs = V \ v_old;
         rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
     end
