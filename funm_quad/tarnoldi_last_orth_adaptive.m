@@ -2,8 +2,10 @@ function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_orth_adaptive( A, m
 
 n = size(A, 1);
 s0 = 30;
-S = randn(s0, n);  % sketching matrix.
 s = s0;
+s_max = s0 * ceil(2 * m_max / s0);
+
+S = randn(s_max, n);  % sketching matrix.
 
 H = zeros(m_max, m_max);
 accuracy_flag = 0;
@@ -26,7 +28,8 @@ trunc = param.truncation_length;
 reo = param.reorth_number;
 breakdown = 0;
 
-P = [S * V_big(: ,1)];
+P_big = zeros(s_max, m_max);
+P_big(1 : s, 1) = S(1 : s, :) * V_big(: ,1);
 for j = 1 : m_max
     w = V_big(:,j);
     if isnumeric(A)
@@ -53,8 +56,12 @@ for j = 1 : m_max
     
     w = (1/H(j+1,j))*w;
     if j < m_max
-        V_big(:,j+1) = w;
-        P = [P, S * w];
+        V_big(:, j + 1) = w;
+        P_big(1 : s, j + 1) = S(1 : s, :) * w;
+
+        if cond(P_big(1 : s, 1 : (j + 1))) > cond_tol
+            break;
+        end
     end
 
     if param.max_restarts == 1 && (~mod(j,10) && j >= 20),
@@ -82,22 +89,19 @@ for j = 1 : m_max
         end
     end
 
-    if cond(P) > cond_tol
-        break;
-    end
-
     if s < 2 * j
-        S_incr = randn(s0, n);
-        S = [S; S_incr];
-        P = [P; S_incr * V_big(:, 1 : (j + 1))];
+        % S = [S; S_incr];
+        % P = [P; S_incr * V_big(:, 1 : (j + 1))];
+        P_big((s + 1) : (s + s0), 1 : (j + 1)) ...
+            = S((s + 1) : (s + s0), :) * V_big(:, 1 : (j + 1));
         s = s + s0;
     end
 end
 
 m = j;
-c = V_big(:,1 : m) \ w;
+c = V_big(:, 1 : m) \ w;
 % c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
-w = w - V_big(:,1 : m) * c;
+w = w - V_big(:, 1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 norm_w = norm(w);
 H(m+1,m) = H(m+1,m) * norm_w;
