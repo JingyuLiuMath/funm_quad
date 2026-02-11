@@ -188,7 +188,7 @@ fprintf("initial err: %e\n", at_rel_err0);
 fprintf("\n\n");
 
 %% save data
-file_name = "./data/invsqrt/invsqrt_" + string(N) + "_" + string(m) + ".mat";
+file_name = "./data/invsqrt/invsqrt_" + string(N) + "_" + string(m) + "_" + string(truncation_length) + ".mat";
 save(file_name, ...
     "f", "out", "t", ...
     "f_fom_t", "out_fom_t", "t_fom_t", ...
@@ -258,7 +258,7 @@ if ~isempty(out.appr)
     xticks(1 : max_iter);
     xlabel('cycle');
     ylabel('rel error compared to benchmark');
-    file_name = "invsqrt_rel_err_" + string(N) + "_" + string(m);
+    file_name = "invsqrt_rel_err_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/invsqrt/" + file_name + ".png", "png");
     saveas(gcf, "./figure/invsqrt/" + file_name + ".eps", "epsc");
 
@@ -275,7 +275,7 @@ if ~isempty(out.appr)
     xticks(1 : max_iter);
     xlabel('cycle');
     ylabel('update norm');
-    file_name = "invsqrt_norm_update_" + string(N) + "_" + string(m);
+    file_name = "invsqrt_norm_update_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/invsqrt/" + file_name + ".png", "png");
     saveas(gcf, "./figure/invsqrt/" + file_name + ".eps", "epsc");
 
@@ -292,7 +292,7 @@ if ~isempty(out.appr)
     xticks(1 : max_iter)
     xlabel('cycle');
     ylabel('num of quad points');
-    file_name = "invsqrt_num_quad_" + string(N) + "_" + string(m);
+    file_name = "invsqrt_num_quad_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/invsqrt/" + file_name + ".png", "png");
     saveas(gcf, "./figure/invsqrt/" + file_name + ".eps", "epsc");
 
@@ -304,7 +304,7 @@ if ~isempty(out.appr)
     xticks(1 : max_iter)
     xlabel('cycle');
     ylabel('num of subspace dim');
-    file_name = "invsqrt_subspace_dim_" + string(N) + "_" + string(m);
+    file_name = "invsqrt_subspace_dim_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/invsqrt/" + file_name + ".png", "png");
     saveas(gcf, "./figure/invsqrt/" + file_name + ".eps", "epsc");
 end
