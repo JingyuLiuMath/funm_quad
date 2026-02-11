@@ -1,4 +1,6 @@
-function [ w,H,h,breakdown,accuracy_flag] = sarnoldi_last_orth( A,m,H,s,param )
+function [ beta,w,H,h,breakdown,accuracy_flag] = sarnoldi_last_orth( A,m,H,s,param )
+
+n = size(A, 1);
 
 accuracy_flag = 0;
 fm = 0;
@@ -15,10 +17,24 @@ if param.max_restarts == 1
     end
 end
 
-global S;
 global V_big;
-global SV_big;
-global SAV_big;
+
+if param.sketch_dim_type == "add"
+    sketch_size = ceil(m + param.sketch_dim_factor);
+elseif param.sketch_dim_type == "prod"
+    sketch_size = ceil(m * param.sketch_dim_factor);
+end
+% S = randn(sketch_size, n);  % sketching matrix.
+S = clarkson_woodruff(sketch_size, n);
+
+SV_big = zeros(sketch_size, size(V_big, 2));
+% SAV_big = zeros(sketch_size, size(V_big, 2));
+
+Sw  = S * V_big(:, 1);
+beta = norm(Sw);
+V_big(:, 1) = V_big(:, 1) / beta;
+SV_big(:, 1) = Sw / beta;
+
 H(m+1,m) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
@@ -33,12 +49,12 @@ for k = s:m,
         w = A(w);
     end
     Sw = S * w;
-    SAV_big(:, k) = Sw;
+    % SAV_big(:, k) = Sw;
     
     sj = max([1,k-trunc+1]);
     if(k==s), sj = 1; end
-    for r = 0:reo,
-        for j = sj:k,
+    for r = 0:reo
+        for j = sj:k
             ip = param.inner_product(Sw,SV_big(:,j));
             H(j,k) = H(j,k) + ip(1);
             Sw = Sw - SV_big(:,j) * ip(1);
@@ -88,7 +104,6 @@ end
 
 % update.
 c = V_big(:,1 : m) \ w;
-% c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
 w = w - V_big(:,1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 norm_w = norm(w);

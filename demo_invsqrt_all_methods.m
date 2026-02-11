@@ -7,7 +7,7 @@ maxNumCompThreads(1);
 % m_max = 100;
 m = 200;
 m_max = 500;
-truncation_length = 5;
+truncation_length = 2;
 sk_type = "prod";
 sk_factor = 2;
 ada_tol = inf;  % inf means always sketching

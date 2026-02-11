@@ -2,8 +2,9 @@ function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_sorth_adaptive( A, 
 
 n = size(A, 1);
 s0 = 30;
+% S = randn(s0, n);  % sketching matrix.
+S = clarkson_woodruff(s0, n);
 s = s0;
-S = randn(s0, n);  % sketching matrix.
 
 H = zeros(m_max, m_max);
 accuracy_flag = 0;
@@ -29,12 +30,6 @@ breakdown = 0;
 SV_big = zeros(s, m_max);
 SV_big(:, 1) = S * V_big(: ,1);
 for j = 1 : m_max
-    if s < 2 * j
-        S_incr = randn(s0, n);
-        S = [S; S_incr];
-        SV_big = [SV_big; S_incr * V_big(:, 1 : j), zeros(s0, m_max - j)];
-        s = s + s0;
-    end
 
     w = V_big(:,j);
     if isnumeric(A)
@@ -64,6 +59,14 @@ for j = 1 : m_max
     if j < m_max
         V_big(:, j + 1) = w;
         SV_big(:, j + 1) = Sw;
+
+        if s < 2 * (j + 1)
+            % S_incr = randn(s0, n);
+            S_incr = clarkson_woodruff(s0, n);
+            S = [S; S_incr];
+            SV_big = [SV_big; S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
+            s = s + s0;
+        end
 
         if cond(SV_big(:, 1 : (j + 1))) > cond_tol
             break;

@@ -68,19 +68,7 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
-global S;
-if param.sketch_dim_type == "add"
-    sketch_size = ceil(m + param.sketch_dim_factor);
-elseif param.sketch_dim_type == "prod"
-    sketch_size = ceil(m * param.sketch_dim_factor);
-end
-S = randn(sketch_size, n);  % sketching matrix.
-
-global SV_big
-SV_big = zeros(sketch_size, alloc);
-global SAV_big
-SAV_big = zeros(sketch_size, alloc);
-
+max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
@@ -122,17 +110,13 @@ for k = 1:param.max_restarts,
         H = [];
     end
     
-    Sv  = S * v;
-    beta = norm(Sv);
-    V_big(:, 1) = v / beta;
-    SV_big(:, 1) = Sv / beta;
+    V_big(:, 1) = v;
     
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi_last_orth( A,m+ell,H,ell+1,param );
-        % rhs = V \ v_old;
+        [ beta,v,H,eta,breakdown, accuracy_flag ] = sarnoldi_last_orth( A,m+ell,H,ell+1,param );
         rhs = beta * unit(1, m);  % this is because v_old = s_beta * V(:, 1).
     end
     
@@ -448,12 +432,16 @@ for k = 1:param.max_restarts,
                     end
                     out.num_quadpoints(k) = N;
                     converged = 1;
-                else
+                elseif N < max_num_quad_points
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     h1 = h2;
                     N = N2;
+                else
+                    fprintf("quadrature does not converge but exceed max\n");
+                    out.num_quadpoints(k) = N;
+                    converged = 1;
                 end
             end
         end

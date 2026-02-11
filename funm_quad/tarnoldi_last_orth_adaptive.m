@@ -2,7 +2,8 @@ function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_orth_adaptive( A, m
 
 n = size(A, 1);
 s0 = 30;
-S = randn(s0, n);  % sketching matrix.
+% S = randn(s0, n);  % sketching matrix.
+S = clarkson_woodruff(s0, n);
 s = s0;
 
 H = zeros(m_max, m_max);
@@ -29,12 +30,6 @@ breakdown = 0;
 SV_big = zeros(s, m_max);
 SV_big(:, 1) = S * V_big(: ,1);
 for j = 1 : m_max
-    if s < 2 * j
-        S_incr = randn(s0, n);
-        S = [S; S_incr];
-        SV_big = [SV_big; S_incr * V_big(:, 1 : j), zeros(s0, m_max - j)];
-        s = s + s0;
-    end
 
     w = V_big(:,j);
     if isnumeric(A)
@@ -42,7 +37,7 @@ for j = 1 : m_max
     else
         w = A(w);
     end
-    
+
     i_start = max([1,j-trunc+1]);
     for r = 0:reo
         for i = i_start:j
@@ -51,19 +46,27 @@ for j = 1 : m_max
             w = w - V_big(:,i)*ip(1);
         end
     end
-    
+
     H(j+1,j) = norm(w);
-    
+
     if abs(H(j+1,j)) < j*eps*norm(H(1:j+1,j))
         breakdown = j;
         break
     end
-    
+
     w = (1/H(j+1,j))*w;
     Sw = S * w;
     if j < m_max
         V_big(:,j+1) = w;
         SV_big(:, j + 1) = Sw;
+
+        if s < 2 * (j + 1)
+            % S_incr = randn(s0, n);
+            S_incr = clarkson_woodruff(s0, n);
+            S = [S; S_incr];
+            SV_big = [SV_big; S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
+            s = s + s0;
+        end
 
         if cond(SV_big(:, 1 : (j + 1))) > cond_tol
             break;
@@ -96,9 +99,9 @@ for j = 1 : m_max
     end
 end
 
+
 m = j;
 c = V_big(:,1 : m) \ w;
-% c = (V_big(:,1 : m)' * V_big(:,1 : m)) \ (V_big(:,1 : m)' * w);
 w = w - V_big(:,1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
 norm_w = norm(w);

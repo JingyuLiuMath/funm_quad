@@ -68,18 +68,6 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
-global S;
-if param.sketch_dim_type == "add"
-    sketch_size = ceil(m + param.sketch_dim_factor);
-elseif param.sketch_dim_type == "prod"
-    sketch_size = ceil(m * param.sketch_dim_factor);
-end
-
-global SV_big
-SV_big = zeros(sketch_size, alloc);
-global SAV_big
-SAV_big = zeros(sketch_size, alloc);
-
 max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
@@ -90,7 +78,6 @@ beta_acc = 1;
 update_norm = inf;
 % restart loop starts here
 for k = 1:param.max_restarts,
-    S = randn(sketch_size, n);  % sketching matrix.
 
     % check whether a stop condition is satisfied
     if str2double(out.stop_condition(1)),
@@ -125,10 +112,7 @@ for k = 1:param.max_restarts,
         H = [];
     end
 
-    Sv  = S * v;
-    beta = norm(Sv);
-    V_big(:, 1) = v / beta;
-    SV_big(:, 1) = Sv / beta;
+    V_big(:, 1) = v;
 
     % compute/extend Krylov decomposition
     if param.hermitian,
@@ -143,13 +127,13 @@ for k = 1:param.max_restarts,
                 rhs = beta * unit(1, m);
             elseif param.standard == "nonorth_fom"
                 % One may also use FOM without sketching in this case.
-                [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi_last_update( A,m+ell,H,ell+1,param );
+                [ beta,v,H,eta,breakdown, accuracy_flag ] = sarnoldi_last_orth( A,m+ell,H,ell+1,param );
                 % rhs = V \ v_old;
                 rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
             end
             out.sketching(k) = 0;
         else
-            [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi( A,m+ell,H,ell+1,param );
+            [ beta,v,H,eta,breakdown, accuracy_flag ] = sarnoldi( A,m+ell,H,ell+1,param );
             rhs = beta * unit(1, m);
             out.sketching(k) = 1;
         end

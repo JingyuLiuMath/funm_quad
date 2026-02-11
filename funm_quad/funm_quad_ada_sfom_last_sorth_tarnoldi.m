@@ -67,7 +67,6 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
-
 max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
@@ -112,7 +111,7 @@ for k = 1:param.max_restarts,
     end
     
     beta = norm(b);
-    V_big(:,ell+1) = v / beta;
+    V_big(:, 1) = v / beta;
     
     % compute/extend Krylov decomposition
     if param.hermitian,
@@ -120,7 +119,6 @@ for k = 1:param.max_restarts,
     else
         [ m,v,H,eta,breakdown, accuracy_flag ] = ...
             tarnoldi_last_sorth_adaptive( A,m_max,cond_tol,param );
-        % rhs = V \ v_old;
         rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
     end
     

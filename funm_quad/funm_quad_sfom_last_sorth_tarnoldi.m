@@ -82,9 +82,7 @@ end
 beta_acc = 1;
 update_norm = inf;
 % restart loop starts here
-for k = 1:param.max_restarts,
-    S = randn(sketch_size, n);  % sketching matrix.
-    
+for k = 1:param.max_restarts,   
     % check whether a stop condition is satisfied
     if str2double(out.stop_condition(1)),
         break
@@ -143,16 +141,22 @@ for k = 1:param.max_restarts,
             [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
             
             % sFOM.
+            % S = randn(sketch_size, n);  % sketching matrix.
+            S = clarkson_woodruff(sketch_size, n);
+
             V = V_big(:, 1 : m);
             SV = S * V;
             coeff = SV \ (S * v);
-            H(1 : m, m) = H(1 : m, m) + eta * coeff;
             v = v - V * coeff;
+            H(1 : m, m) = H(1 : m, m) + eta * coeff;
+            norm_v = norm(v);
+            eta = eta * norm_v;
+            v = v / norm_v;
             rhs = beta * unit(1, m);  % this is because Sv = SV(:, 1) * beta.
             out.sketching(k) = 1;
 
             % FOM.
-            % G = H;
+            % H = H;
             % rhs = beta * unit(1, m);
             % out.sketching(k) = 0;
         end

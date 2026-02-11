@@ -67,7 +67,7 @@ global V_big
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
-
+max_num_quad_points = 1024;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
@@ -110,14 +110,13 @@ for k = 1:param.max_restarts,
     end
     
     beta = norm(b);
-    V_big(:,ell+1) = v / beta;
+    V_big(:, 1) = v / beta;
     
     % compute/extend Krylov decomposition
     if param.hermitian,
         [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
         [ v,H,eta,breakdown, accuracy_flag ] = tarnoldi_last_orth( A,m+ell,H,ell+1,param );
-        % rhs = V \ v_old;
         rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
     end
     
@@ -427,18 +426,22 @@ for k = 1:param.max_restarts,
             
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm((h2-h1))/norm(f) < tol
+                if norm(h2-h1)/norm(f) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     out.num_quadpoints(k) = N;
                     converged = 1;
-                else
+                elseif N < max_num_quad_points
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     h1 = h2;
                     N = N2;
+                else
+                    fprintf("quadrature does not converge but exceed max\n");
+                    out.num_quadpoints(k) = N;
+                    converged = 1;
                 end
             end
         end
