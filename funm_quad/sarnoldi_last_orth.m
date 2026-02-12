@@ -1,7 +1,5 @@
 function [ beta,w,H,h,breakdown,accuracy_flag] = sarnoldi_last_orth( A,m,H,s,param )
 
-n = size(A, 1);
-
 accuracy_flag = 0;
 fm = 0;
 tol = param.tol;
@@ -18,6 +16,7 @@ if param.max_restarts == 1
 end
 
 global V_big;
+n = size(V_big, 1);
 
 if param.sketch_dim_type == "add"
     sketch_size = ceil(m + param.sketch_dim_factor);
