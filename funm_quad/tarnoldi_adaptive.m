@@ -109,9 +109,9 @@ if ~isempty(param.last_update)
     switch param.last_update
         case "orth"
             [w,H,h] = Arnoldi_last_orth_update(m, w, H, h);
-            % [w,H,h] = Arnoldi_last_orth_update(m, w, H, h);
+            [w,H,h] = Arnoldi_last_orth_update(m, w, H, h);
         case "sorth"
             [w,H,h] = Arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            % [w,H,h] = Arnoldi_last_sorth_update(m, w, H, h, SV_big, S * w);
+            [w,H,h] = Arnoldi_last_sorth_update(m, w, H, h, SV_big, S * w);
     end
 end
