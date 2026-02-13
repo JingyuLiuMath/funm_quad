@@ -3,12 +3,10 @@ close all;
 rng(2026);
 maxNumCompThreads(1);
 
-% m = 50;
-% m_max = 100;
 m = 100;
 m_max = 200;
 ada_max_restarts = 15;
-truncation_length = 2;
+truncation_length = 0;
 max_num_quad_points = 1024;
 
 sketching_mat_type = "Clarkson-Woodruff";
@@ -253,14 +251,14 @@ if ~isempty(out.appr)
 
     close all;
     figure();
-    semilogy(vecnorm(f - out.appr) / norm(f), '--+', "DisplayName", "benchmark");
+    semilogy(vecnorm(f_ex - out.appr) / norm(f_ex), '--+', "DisplayName", "benchmark");
     hold on;
-    semilogy(vecnorm(f - out_fom_t.appr) / norm(f), '--x', "DisplayName", "fom-t");
-    semilogy(vecnorm(f - out_fom_s.appr) / norm(f), '--*', "DisplayName", "fom-s");
-    semilogy(vecnorm(f - out_sfom_t.appr) / norm(f), '--d', "DisplayName", "sfom-t");
-    semilogy(vecnorm(f - out_sfom_s.appr) / norm(f), '--s', "DisplayName", "sfom-s");
-    semilogy(vecnorm(f - out_afom_t.appr) / norm(f), '--o', "DisplayName", "afom-t");
-    semilogy(vecnorm(f - out_asfom_t.appr) / norm(f), '--p', "DisplayName", "asfom-t");
+    semilogy(vecnorm(f_ex - out_fom_t.appr) / norm(f_ex), '--x', "DisplayName", "fom-t");
+    semilogy(vecnorm(f_ex - out_fom_s.appr) / norm(f_ex), '--*', "DisplayName", "fom-s");
+    semilogy(vecnorm(f_ex - out_sfom_t.appr) / norm(f_ex), '--d', "DisplayName", "sfom-t");
+    semilogy(vecnorm(f_ex - out_sfom_s.appr) / norm(f_ex), '--s', "DisplayName", "sfom-s");
+    semilogy(vecnorm(f_ex - out_afom_t.appr) / norm(f_ex), '--o', "DisplayName", "afom-t");
+    semilogy(vecnorm(f_ex - out_asfom_t.appr) / norm(f_ex), '--p', "DisplayName", "asfom-t");
     legend;
     xticks(1 : max_iter);
     xlabel('cycle');

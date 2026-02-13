@@ -102,6 +102,9 @@ for j = 1 : m_max
 end
 
 m = j;
+% Try a new sketching matrix?
+% S = sketching_mat(2 * s, n, param.sketching_mat_type);
+% SV_big = S * V_big(:, 1 : (m + 1));
 Sw = SV_big(:, m + 1);
 h = H(m+1,m);
 H = H(1:m,1:m);
@@ -110,8 +113,24 @@ if ~isempty(param.last_update)
         case "orth"
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+
+            V = V_big(:, 1 : m);
+            AV = A * V;
+            diff_AD = AV - (V * H + w * h * unit(m, m)');
+            rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+            fprintf("rel decomp err: %.4e\n", rel_err_AD);
+            orth_err = norm(V' * w) / norm(w);
+            fprintf("rel orth err: %.4e\n", orth_err);
         case "sorth"
-            [w,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            [w,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, S * w);
+            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            
+            V = V_big(:, 1 : m);
+            AV = A * V;
+            diff_AD = AV - (V * H + w * h * unit(m, m)');
+            rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+            fprintf("rel decomp err: %.4e\n", rel_err_AD);
+            orth_err = norm((S * V)' * (S * w)) / norm(S * w);
+            fprintf("rel orth err: %.4e\n", orth_err);
     end
 end

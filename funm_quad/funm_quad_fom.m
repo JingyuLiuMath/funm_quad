@@ -129,9 +129,10 @@ for k = 1:param.max_restarts,
                         [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
                     case "sorth"
                         S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
-                        SV_big = S * V_big(:, 1 : m);
-                        [v,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, S * v);
-                        [v,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, S * v);
+                        SV_big = S * V_big(:, 1 : (m + 1));
+                        Sv = SV_big(:, m + 1);
+                        [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
+                        [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
                 end
             end
             rhs = beta * unit(1, m);
