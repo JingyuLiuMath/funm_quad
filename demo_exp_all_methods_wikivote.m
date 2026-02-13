@@ -7,17 +7,24 @@ maxNumCompThreads(1);
 % m_max = 100;
 m = 100;
 m_max = 200;
-truncation_length = 1;
-sk_type = "prod";
-sk_factor = 2;
-ada_tol = inf;  % inf means always sketching
-standard = "nonorth_fom";
-cond_tol = 1e6;
 ada_max_restarts = 15;
+truncation_length = 2;
+max_num_quad_points = 1024;
+
+sketching_mat_type = "Clarkson-Woodruff";
+sketching_size = 2 * m;
+ada_sketching_size_control = 2;
+cond_tol = 1e6;
 
 fprintf("m: %d\n", m);
-fprintf("truncation_length: %d\n", truncation_length);
 fprintf("m_max: %d\n", m_max);
+fprintf("ada_max_restarts: %d\n", ada_max_restarts);
+fprintf("truncation_length: %d\n", truncation_length);
+fprintf("max_num_quad_points: %d\n", max_num_quad_points);
+
+fprintf("sketching_mat_type: %s\n", sketching_mat_type);
+fprintf("sketching_size: %d\n", sketching_size);
+fprintf("ada_sketcing_size_control: %d\n", ada_sketching_size_control);
 fprintf("cond_tol: %d\n", cond_tol);
 
 %% Load matrix.
@@ -63,10 +70,13 @@ fprintf("\n\n");
 
 %% fom-t
 fprintf("fom-t\n");
-t_param = param;
-t_param.truncation_length = truncation_length;
+fomt_param = param;
+fomt_param.truncation_length = truncation_length;
+fomt_param.max_num_quad_points = max_num_quad_points;
+fomt_param.sarnoldi = 0;
+fomt_param.last_update = "orth";
 tic;
-[f_fom_t, out_fom_t] = funm_quad_fom_last_orth_tarnoldi(A,b,t_param);
+[f_fom_t, out_fom_t] = funm_quad_fom(A,b,fomt_param);
 t_fom_t = toc;
 
 num_it = size(out_fom_t.appr, 2);
@@ -79,14 +89,15 @@ fprintf("\n\n");
 
 %% sfom-t
 fprintf("sfom-t\n");
-st_param = param;
-st_param.truncation_length = truncation_length;
-st_param.sketch_dim_type = sk_type;
-st_param.sketch_dim_factor = sk_factor;
-st_param.ada_tol = ada_tol;
-st_param.standard = standard;
+sfomt_param = param;
+sfomt_param.truncation_length = truncation_length;
+sfomt_param.max_num_quad_points = max_num_quad_points;
+sfomt_param.sketching_mat_type = sketching_mat_type;
+sfomt_param.sketching_size = sketching_size;
+sfomt_param.sarnoldi = 0;
+sfomt_param.last_update = "sorth";
 tic;
-[f_sfom_t, out_sfom_t] = funm_quad_sfom_last_sorth_tarnoldi(A,b,st_param);
+[f_sfom_t, out_sfom_t] = funm_quad_fom(A,b,sfomt_param);
 t_sfom_t = toc;
 
 num_it = size(out_sfom_t.appr, 2);
@@ -95,16 +106,18 @@ fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_t);
 t_rel_err0 = norm(out_sfom_t.appr(:, 1) - f_ex) / norm(f_ex);
 fprintf("initial err: %e\n", t_rel_err0);
-fprintf("number of sketching steps: %d\n", sum(out_sfom_t.sketching));
 fprintf("\n\n");
 
 %% fom-s
 fprintf("fom-s\n");
-s_param = param;
-s_param.sketch_dim_type = sk_type;
-s_param.sketch_dim_factor = sk_factor;
+foms_param = param;
+foms_param.max_num_quad_points = max_num_quad_points;
+foms_param.sketching_mat_type = sketching_mat_type;
+foms_param.sketching_size = sketching_size;
+foms_param.sarnoldi = 1;
+foms_param.last_update = "orth";
 tic;
-[f_fom_s, out_fom_s] = funm_quad_fom_last_orth_sarnoldi(A,b,s_param);
+[f_fom_s, out_fom_s] = funm_quad_fom(A,b,foms_param);
 t_fom_s = toc;
 
 num_it = size(out_fom_s.appr, 2);
@@ -117,13 +130,14 @@ fprintf("\n\n");
 
 %% sfom-s
 fprintf("sfom-s\n");
-ss_param = param;
-ss_param.sketch_dim_type = sk_type;
-ss_param.sketch_dim_factor = sk_factor;
-ss_param.ada_tol = ada_tol;
-ss_param.standard = standard;
+sfoms_param = param;
+sfoms_param.max_num_quad_points = max_num_quad_points;
+sfoms_param.sketching_mat_type = sketching_mat_type;
+sfoms_param.sketching_size = sketching_size;
+sfoms_param.sarnoldi = 1;
+sfoms_param.last_update = "sorth";
 tic;
-[f_sfom_s, out_sfom_s] = funm_quad_sfom_last_sorth_sarnoldi(A,b,ss_param);
+[f_sfom_s, out_sfom_s] = funm_quad_fom(A,b,sfoms_param);
 t_sfom_s = toc;
 
 num_it = size(out_sfom_s.appr, 2);
@@ -132,18 +146,21 @@ fprintf("iter rel_err time\n");
 fprintf(" %d & %.4e & %.4e \n", num_it, rel_err, t_sfom_s);
 s_rel_err0 = norm(out_sfom_s.appr(:, 1) - f_ex) / norm(f_ex);
 fprintf("initial err: %e\n", s_rel_err0);
-fprintf("number of sketching steps: %d\n", sum(out_sfom_s.sketching));
 fprintf("\n\n");
 
 %% afom-t
 fprintf("afom-t\n");
-at_param = param;
-at_param.truncation_length = truncation_length;
-at_param.restart_length = m_max;
-at_param.cond_tol = cond_tol;
-at_param.max_restarts = ada_max_restarts;
+afomt_param = param;
+afomt_param.restart_length = m_max;
+afomt_param.max_restarts = ada_max_restarts;
+afomt_param.truncation_length = truncation_length;
+afomt_param.max_num_quad_points = max_num_quad_points;
+afomt_param.sketching_mat_type = sketching_mat_type;
+afomt_param.ada_sketching_size_control = ada_sketching_size_control;
+afomt_param.cond_tol = cond_tol;
+afomt_param.last_update = "orth";
 tic;
-[f_afom_t, out_afom_t] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,at_param);
+[f_afom_t, out_afom_t] = funm_quad_adaptive(A,b,afomt_param);
 t_afom_t = toc;
 
 num_it = size(out_afom_t.appr, 2);
@@ -156,13 +173,17 @@ fprintf("\n\n");
 
 %% asfom-t
 fprintf("asfom-t\n");
-ast_param = param;
-ast_param.truncation_length = truncation_length;
-ast_param.restart_length = m_max;
-ast_param.cond_tol = cond_tol;
-ast_param.max_restarts = ada_max_restarts;
+asfomt_param = param;
+asfomt_param.restart_length = m_max;
+asfomt_param.max_restarts = ada_max_restarts;
+asfomt_param.truncation_length = truncation_length;
+asfomt_param.max_num_quad_points = max_num_quad_points;
+asfomt_param.sketching_mat_type = sketching_mat_type;
+asfomt_param.ada_sketching_size_control = ada_sketching_size_control;
+asfomt_param.cond_tol = cond_tol;
+asfomt_param.last_update = "sorth";
 tic;
-[f_asfom_t, out_asfom_t] = funm_quad_ada_sfom_last_sorth_tarnoldi(A,b,ast_param);
+[f_asfom_t, out_asfom_t] = funm_quad_adaptive(A,b,asfomt_param);
 t_asfom_t = toc;
 
 num_it = size(out_asfom_t.appr, 2);

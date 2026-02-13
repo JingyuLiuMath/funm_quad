@@ -1,6 +1,5 @@
-function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_last_orth_adaptive( A, m_max, cond_tol, param)
+function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_adaptive( A, m_max, param)
 
-H = zeros(m_max, m_max);
 accuracy_flag = 0;
 fm = 0;
 tol = param.tol;
@@ -16,15 +15,18 @@ if param.max_restarts == 1
     end
 end
 
-global V_big
+H = zeros(m_max, m_max);
+
+cond_tol = param.cond_tol;
+
+global V_big;
 trunc = param.truncation_length;
 reo = param.reorth_number;
 breakdown = 0;
 
 n = size(V_big, 1);
 s0 = 30;
-% S = randn(s0, n);  % sketching matrix.
-S = clarkson_woodruff(s0, n);
+S = sketching_mat(s0, n, param.sketching_mat_type);
 s = s0;
 
 SV_big = zeros(s, m_max);
@@ -57,15 +59,14 @@ for j = 1 : m_max
     w = (1/H(j+1,j))*w;
     Sw = S * w;
     if j < m_max
-        V_big(:,j+1) = w;
+        V_big(:, j + 1) = w;
         SV_big(:, j + 1) = Sw;
 
-        if s < 2 * (j + 1)
-            % S_incr = randn(s0, n);
-            S_incr = clarkson_woodruff(s0, n);
+        if s < param.ada_sketching_size_control * (j + 1)
+            S_incr = sketching_mat(s0, n, param.sketching_mat_type);
             S = [S; S_incr];
-            SV_big = [SV_big; S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
-            Sw = [Sw; S_incr * w];
+            SV_big = [SV_big;
+                S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
             s = s + s0;
         end
 
@@ -100,13 +101,17 @@ for j = 1 : m_max
     end
 end
 
-
 m = j;
-c = V_big(:,1 : m) \ w;
-w = w - V_big(:,1 : m) * c;
-H(1:m, m) = H(1:m, m) + c * H(m + 1, m);
-norm_w = norm(w);
-H(m+1,m) = H(m+1,m) * norm_w;
+Sw = SV_big(:, m + 1);
 h = H(m+1,m);
-w = w / norm_w;
 H = H(1:m,1:m);
+if ~isempty(param.last_update)
+    switch param.last_update
+        case "orth"
+            [w,H,h] = Arnoldi_last_orth_update(m, w, H, h);
+            % [w,H,h] = Arnoldi_last_orth_update(m, w, H, h);
+        case "sorth"
+            [w,H,h] = Arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            % [w,H,h] = Arnoldi_last_sorth_update(m, w, H, h, SV_big, S * w);
+    end
+end

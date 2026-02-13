@@ -1,4 +1,4 @@
-function [f,out,param] = funm_quad_ada_fom_last_orth_tarnoldi(A,b,param)
+function [f,out,param] = funm_quad_adaptive(A,b,param)
 
 if nargin < 3,
     param = struct;
@@ -33,9 +33,8 @@ if param.waitbar,
     hand = waitbar(0,'Please wait...');
 end
 
-v = b;
-
 n = length(b);
+v = b;
 if param.restart_length >= n,
     if param.verbose >= 1,
         disp('Warning: Restart length larger than matrix dimension. Running Arnoldi/Lanczos without restarts.');
@@ -63,17 +62,16 @@ out.stop_condition = '0 - maximal # of restarts exceeded';
 %%
 
 % allocate memory [ >= m+max(ell) ]
-global V_big
+global V_big;
 alloc = param.restart_length + 20;
 V_big = zeros(length(b),alloc);
 
-max_num_quad_points = 1024;
+max_num_quad_points = param.max_num_quad_points;
 N = 32; % initial number of quadrature points
 if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
 end
 
-cond_tol = param.cond_tol;
 beta_acc = 1;
 % restart loop starts here
 for k = 1:param.max_restarts,
@@ -100,7 +98,7 @@ for k = 1:param.max_restarts,
         out.thick_interpol{k-1} = D(ell+1:end);
         if ell,
             U = U(:,1:ell);
-            V_big(:,1:ell) = V_big(:,1:m_max+ell_prev)*U;
+            V_big(:,1:ell) = V_big(:,1:m+ell_prev)*U;
             H_hat = U'*H*U;
             H = [H_hat; eta*U(end,:)];
         else
@@ -117,8 +115,8 @@ for k = 1:param.max_restarts,
     if param.hermitian,
         % [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
-        [ m,v,H,eta,breakdown, accuracy_flag ] = ...
-            tarnoldi_last_orth_adaptive( A,m_max,cond_tol,param );
+        [ m,v,H,eta,breakdown,accuracy_flag ] = ...
+            tarnoldi_adaptive( A,m_max,param );
         rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
     end
     
