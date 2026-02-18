@@ -108,16 +108,18 @@ for k = 1:param.max_restarts,
         H = [];
     end
     
-    beta = norm(b);
-    V_big(:, 1) = v / beta;
+    beta = norm(v);
+    V_big(:, ell+1) = v / beta;
+    beta_acc = beta_acc * beta;
     
     % compute/extend Krylov decomposition
     if param.hermitian,
         % [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
         [ m,v,H,eta,breakdown,accuracy_flag ] = ...
-            tarnoldi_adaptive( A,m_max,param );
-        rhs = beta * unit(1, m);  % this is because v_old = beta * V(:, 1).
+            tarnoldi_adaptive( A,m_max, H, ell+1, param );
+        m = m - ell;
+        rhs = beta_acc * unit(ell+1, m+ell);  % this is because v_old = beta * V(:, 1).
     end
     
     if breakdown
@@ -179,13 +181,10 @@ for k = 1:param.max_restarts,
     if k == 1 && fun_switch ~= 4 % in the first iteration g_1 = f and we use the "closed" form
         switch fun_switch
             case 1
-                % h2 = sqrtm(H)\unit(ell+1,m+ell);
                 h2 = sqrtm(H) \ rhs;
             case 2
-                % h2 = logm(eye(m+ell)+H)*(H\unit(ell+1,m+ell));
-                h2 = logm(eye(m) + H) * (H \ rhs);
+                h2 = logm(eye(size(H, 1)) + H) * (H \ rhs);
             case 3
-                % h2 = expm(H)*unit(ell+1,m+ell);
                 h2 = expm(H) * rhs;
         end
     else
@@ -253,11 +252,12 @@ for k = 1:param.max_restarts,
                 end
                 
                 if isempty(param.thick)
-                    rho_vec = beta_acc * evalnodal(tt, active_nodes, subdiag).';
+                    rho_vec = evalnodal(tt, active_nodes, subdiag).';
                 else
                     rho_vec = evalnodal(tt, active_nodes(1:end-length(out.thick_replaced{k-1})), subdiag(1:end-length(out.thick_replaced{k-1}))).';
                     rho_vec_replaced = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
                     rho_vec = rho_vec .* rho_vec_replaced;
+                    rho_vec = beta_acc * rho_vec;
                 end
                 
                 if param.hermitian % for Hermitian matrices, use diagonalization and scalar quadrature
@@ -288,12 +288,12 @@ for k = 1:param.max_restarts,
                     switch fun_switch
                         case 1
                             for j = 1:length(t)
-                                h1 = h1 + weights(j)*rho_vec(j)*((-beta_transform*(1-t(j))*eye(ell+m)-H*(1+t(j)))\rhs);
+                                h1 = h1 + weights(j)*rho_vec(j)*((-beta_transform*(1-t(j))*eye(size(H))-H*(1+t(j)))\rhs);
                             end
                             h1 = -2*sqrt(beta_transform)/pi*h1;
                         case 2
                             for j = 1:length(t)
-                                h1 = h1 + weights(j)*rho_vec(j)*((H*(1+t(j))+2*eye(m+ell))\rhs);
+                                h1 = h1 + weights(j)*rho_vec(j)*((H*(1+t(j))+2*eye(size(H)))\rhs);
                             end
                         case 3
                             c = c(1:N/2).*rho_vec.';
@@ -356,7 +356,7 @@ for k = 1:param.max_restarts,
             
             if fun_switch ~= 4
                 if isempty(param.thick)
-                    rho_vec2 = beta_acc * evalnodal(tt, active_nodes, subdiag).';
+                    rho_vec2 = evalnodal(tt, active_nodes, subdiag).';
                 else
                     rho_vec2 = evalnodal(tt, active_nodes(1:end-length(out.thick_replaced{k-1})), subdiag(1:end-length(out.thick_replaced{k-1}))).';
                     rho_vec_replaced2 = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
@@ -408,12 +408,12 @@ for k = 1:param.max_restarts,
                 switch fun_switch
                     case 1
                         for j = 1:length(t2)
-                            h2 = h2 + weights2(j)*rho_vec2(j)*((-beta_transform*(1-t2(j))*eye(ell+m)-H*(1+t2(j)))\rhs);
+                            h2 = h2 + weights2(j)*rho_vec2(j)*((-beta_transform*(1-t2(j))*eye(size(H))-H*(1+t2(j)))\rhs);
                         end
                         h2 = -2*sqrt(beta_transform)/pi*h2;
                     case 2
                         for j = 1:length(t2)
-                            h2 = h2 + weights2(j)*rho_vec2(j)*((H*(1+t2(j))+2*eye(m+ell))\rhs);
+                            h2 = h2 + weights2(j)*rho_vec2(j)*((H*(1+t2(j))+2*eye(size(H)))\rhs);
                         end
                     case 3
                         c2 = c2(1:N2/2).*rho_vec2.';
@@ -452,16 +452,16 @@ for k = 1:param.max_restarts,
     
     % workaround due to matlab 'bug' (copies large submatrices)
     
-    h_big = h2(1:m,1);
-    V = V_big(:, 1 : m);
+    h_big = h2(1:m+ell,1);
+    V = V_big(:, 1 : m+ell);
     % update Krylov approximation
     f_update = V*h_big;
     f = f + f_update;
-    beta_acc = beta_acc * beta;
+    % beta_acc = beta_acc * beta
     
     out.appr(:,k) = f;
     out.update(k) = norm(f_update);  % norm of update
-    out.dim(k) = m;
+    out.dim(k) = m + ell;
     
     
     % keep track of subdiagonal entries of Hessenberg matrix

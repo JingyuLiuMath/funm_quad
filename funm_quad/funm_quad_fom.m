@@ -116,26 +116,28 @@ for k = 1:param.max_restarts,
         if param.sarnoldi == 1
             V_big(:, ell + 1) = v;
             [ beta,v,H,eta,breakdown, accuracy_flag ] = sarnoldi( A,m+ell,H,ell+1,param );
-            rhs = beta * unit(1, m);
+            beta_acc = beta_acc * beta;
+            rhs = beta_acc * unit(1 + ell, m + ell);
         else
             beta = norm(v);
-            V_big(:,ell + 1) = v / beta;
+            V_big(:, ell + 1) = v / beta;
+            beta_acc = beta_acc * beta;
             [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
 
             if ~isempty(param.last_update)
                 switch param.last_update
                     case "orth"
                         [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
-                        [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
+                        % [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
                     case "sorth"
                         S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
-                        SV_big = S * V_big(:, 1 : (m + 1));
-                        Sv = SV_big(:, m + 1);
+                        SV_big = S * V_big(:, 1 : (m + ell));
+                        Sv = S * v;
                         [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
-                        [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
+                        % [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
                 end
             end
-            rhs = beta * unit(1, m);
+            rhs = beta_acc * unit(1 + ell, m + ell);
         end
     end
 
@@ -272,7 +274,7 @@ for k = 1:param.max_restarts,
                 end
 
                 if isempty(param.thick)
-                    rho_vec = beta_acc * evalnodal(tt, active_nodes, subdiag).';
+                    rho_vec = evalnodal(tt, active_nodes, subdiag).';
                 else
                     rho_vec = evalnodal(tt, active_nodes(1:end-length(out.thick_replaced{k-1})), subdiag(1:end-length(out.thick_replaced{k-1}))).';
                     rho_vec_replaced = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
@@ -375,7 +377,7 @@ for k = 1:param.max_restarts,
 
             if fun_switch ~= 4
                 if isempty(param.thick)
-                    rho_vec2 = beta_acc * evalnodal(tt, active_nodes, subdiag).';
+                    rho_vec2 = evalnodal(tt, active_nodes, subdiag).';
                 else
                     rho_vec2 = evalnodal(tt, active_nodes(1:end-length(out.thick_replaced{k-1})), subdiag(1:end-length(out.thick_replaced{k-1}))).';
                     rho_vec_replaced2 = evalnodal(tt, out.thick_replaced{k-1}, subdiag(end-length(out.thick_replaced{k-1})+1:end)).';
@@ -478,7 +480,6 @@ for k = 1:param.max_restarts,
     % update Krylov approximation
     f_update = V_big*h_big;
     f = f + f_update;
-    beta_acc = beta_acc * beta;
 
     out.appr(:,k) = f;
     out.update(k) = norm(f_update);  % norm of update

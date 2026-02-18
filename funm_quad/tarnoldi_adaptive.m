@@ -1,4 +1,4 @@
-function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_adaptive( A, m_max, param)
+function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_adaptive( A, m_max, H, start_ind, param)
 
 accuracy_flag = 0;
 fm = 0;
@@ -15,23 +15,27 @@ if param.max_restarts == 1
     end
 end
 
-H = zeros(m_max, m_max);
-
-cond_tol = param.cond_tol;
-
 global V_big;
+H(m_max + 1, m_max) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
+cond_tol = param.cond_tol;
 breakdown = 0;
 
 n = size(V_big, 1);
-s0 = 30;
-S = sketching_mat(s0, n, param.sketching_mat_type);
-s = s0;
+if start_ind == 1
+    s0 = 30;
+    S = sketching_mat(s0, n, param.sketching_mat_type);
+    s = s0;
+else
+    s0 = 2 * start_ind;
+    S = sketching_mat(s0, n, param.sketching_mat_type);
+    s = s0;
+end
 
 SV_big = zeros(s, m_max);
-SV_big(:, 1) = S * V_big(: ,1);
-for j = 1 : m_max
+SV_big(:, 1 : start_ind) = S * V_big(:, 1 : start_ind);
+for j = start_ind : m_max
 
     w = V_big(:,j);
     if isnumeric(A)
@@ -67,6 +71,7 @@ for j = 1 : m_max
             S = [S; S_incr];
             SV_big = [SV_big;
                 S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
+            Sw = SV_big(:, j + 1);
             s = s + s0;
         end
 
@@ -105,32 +110,33 @@ m = j;
 % Try a new sketching matrix?
 % S = sketching_mat(2 * s, n, param.sketching_mat_type);
 % SV_big = S * V_big(:, 1 : (m + 1));
-Sw = SV_big(:, m + 1);
+% Sw = SV_big(:, m + 1);
 h = H(m+1,m);
 H = H(1:m,1:m);
 if ~isempty(param.last_update)
     switch param.last_update
         case "orth"
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
-            [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+            % [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
 
-            V = V_big(:, 1 : m);
-            AV = A * V;
-            diff_AD = AV - (V * H + w * h * unit(m, m)');
-            rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
-            fprintf("rel decomp err: %.4e\n", rel_err_AD);
-            orth_err = norm(V' * w) / norm(w);
-            fprintf("rel orth err: %.4e\n", orth_err);
+            % V = V_big(:, 1 : m);
+            % AV = A * V;
+            % diff_AD = AV - (V * H + w * h * unit(m, m)');
+            % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+            % fprintf("rel decomp err: %.4e\n", rel_err_AD);
+            % orth_err = norm(V' * w) / norm(w);
+            % fprintf("rel orth err: %.4e\n", orth_err);
         case "sorth"
             [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            % [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
             
-            V = V_big(:, 1 : m);
-            AV = A * V;
-            diff_AD = AV - (V * H + w * h * unit(m, m)');
-            rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
-            fprintf("rel decomp err: %.4e\n", rel_err_AD);
-            orth_err = norm((S * V)' * (S * w)) / norm(S * w);
-            fprintf("rel orth err: %.4e\n", orth_err);
+            % V = V_big(:, 1 : m);
+            % AV = A * V;
+            % diff_AD = AV - (V * H + w * h * unit(m, m)');
+            % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+            % fprintf("rel decomp err: %.4e\n", rel_err_AD);
+            % orth_err = norm((S * V)' * (S * w)) / norm(S * w);
+            % fprintf("rel orth err: %.4e\n", orth_err);
     end
 end
+V_big(:, (m + 1):end) = 0;

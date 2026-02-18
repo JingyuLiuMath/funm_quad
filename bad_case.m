@@ -59,7 +59,7 @@ param.verbose = 2;                  % print information about progress of algori
 % rng(2026)  % quadrature points were not enough in iter 4, bad acc in iter 4.
 % rng(1)  % quadrature points were not enough in iter 4, bad acc in iter 4.
 % rng(1024)  % good case.
-rng(0524) % quadrature points were not enough in iter 4, bad acc in iter 4.
+% rng(0524) % quadrature points were not enough in iter 4, bad acc in iter 4.
 
 fprintf("afom-t\n");
 afomt_param = param;

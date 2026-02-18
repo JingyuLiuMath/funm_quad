@@ -100,7 +100,7 @@ if ~isempty(param.last_update)
     switch param.last_update
         case "orth"
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
-            [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+            % [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
         case "sorth"
             % nothing need to be done.
     end

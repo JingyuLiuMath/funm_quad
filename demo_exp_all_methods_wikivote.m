@@ -3,19 +3,22 @@ close all;
 rng(2026);
 maxNumCompThreads(1);
 
-m = 100;
-m_max = 200;
-ada_max_restarts = 15;
-truncation_length = 0;
-max_num_quad_points = 1024;
+quad_tol = 1e-7;
+stop_tol = 1e-8;
 
-sketching_mat_type = "Clarkson-Woodruff";
+m = 100;
+max_restarts = 15;
+ada_max_restarts = 200;
+truncation_length = 0;
+max_num_quad_points = 8192;
+
+sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 ada_sketching_size_control = 2;
 cond_tol = 1e6;
 
 fprintf("m: %d\n", m);
-fprintf("m_max: %d\n", m_max);
+fprintf("max_restarts: %d\n", max_restarts);
 fprintf("ada_max_restarts: %d\n", ada_max_restarts);
 fprintf("truncation_length: %d\n", truncation_length);
 fprintf("max_num_quad_points: %d\n", max_num_quad_points);
@@ -37,13 +40,13 @@ f_ex = ex_expm;
 addpath('funm_quad')
 param.function = 'exp';
 param.restart_length = m;          % each restart cycle consists of 70 Arnoldi iterations
-param.max_restarts = 15;            % perform at most 15 restart cycles
-param.tol = 1e-12;                   % tolerance for quadrature rule
+param.max_restarts = max_restarts;            % perform at most 15 restart cycles
+param.tol = quad_tol;                   % tolerance for quadrature rule
 param.hermitian = 0;                % the matrix A is Hermitian
 param.V_full = 0;                   % set 1 if you need Krylov basis
 param.H_full = 0;                   % do not store all Hessenberg matrices
 param.exact = [];
-param.stopping_accuracy = 1e-14;     % stopping accuracy
+param.stopping_accuracy = stop_tol;     % stopping accuracy
 param.inner_product = @(a,b) b'*a;  % use standard Euclidean inner product
 param.thick = [];                   % no implicit deflation is performed
 param.min_decay = .95;              % we desire linear error reduction of rate < .95
@@ -149,7 +152,6 @@ fprintf("\n\n");
 %% afom-t
 fprintf("afom-t\n");
 afomt_param = param;
-afomt_param.restart_length = m_max;
 afomt_param.max_restarts = ada_max_restarts;
 afomt_param.truncation_length = truncation_length;
 afomt_param.max_num_quad_points = max_num_quad_points;
@@ -172,8 +174,7 @@ fprintf("\n\n");
 %% asfom-t
 fprintf("asfom-t\n");
 asfomt_param = param;
-asfomt_param.restart_length = m_max;
-asfomt_param.max_restarts = ada_max_restarts;
+afomt_param.max_restarts = ada_max_restarts;
 asfomt_param.truncation_length = truncation_length;
 asfomt_param.max_num_quad_points = max_num_quad_points;
 asfomt_param.sketching_mat_type = sketching_mat_type;
@@ -260,9 +261,9 @@ if ~isempty(out.appr)
     semilogy(vecnorm(f_ex - out_afom_t.appr) / norm(f_ex), '--o', "DisplayName", "afom-t");
     semilogy(vecnorm(f_ex - out_asfom_t.appr) / norm(f_ex), '--p', "DisplayName", "asfom-t");
     legend;
-    xticks(1 : max_iter);
+    xticks(1 : ceil(max_iter / 10) : max_iter);
     xlabel('cycle');
-    ylabel('rel error compared to benchmark');
+    ylabel('rel error compared to exact');
     file_name = "wikivote_rel_err_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
     saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
@@ -278,7 +279,7 @@ if ~isempty(out.appr)
     semilogy(out_afom_t.update, '--o', "DisplayName", "afom-t");
     semilogy(out_asfom_t.update, '--p', "DisplayName", "asfom-t");
     legend;
-    xticks(1 : max_iter);
+    xticks(1 : ceil(max_iter / 10) : max_iter);
     xlabel('cycle');
     ylabel('update norm');
     file_name = "wikivote_norm_update_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
@@ -295,7 +296,7 @@ if ~isempty(out.appr)
     plot(out_afom_t.num_quadpoints, '--o', "DisplayName", "afom-t");
     plot(out_asfom_t.num_quadpoints, '--p', "DisplayName", "asfom-t");
     legend;
-    xticks(1 : max_iter)
+    xticks(1 : ceil(max_iter / 10) : max_iter);
     xlabel('cycle');
     ylabel('num of quad points');
     file_name = "wikivote_num_quad_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
@@ -307,9 +308,10 @@ if ~isempty(out.appr)
     hold on;
     plot(out_asfom_t.dim, '--p', "DisplayName", "asfom-t");
     legend;
-    xticks(1 : max_iter)
+    xticks(1 : ceil(max_iter / 10) : max_iter);
+    yticks(unique([out_afom_t.dim, out_asfom_t.dim]));
     xlabel('cycle');
-    ylabel('num of subspace dim');
+    ylabel('subspace dim');
     file_name = "wikivote_subspace_dim_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
     saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
