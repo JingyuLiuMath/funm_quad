@@ -2,6 +2,7 @@ clear;
 close all;
 rng(2026);
 maxNumCompThreads(1);
+warning off;
 
 quad_tol = 1e-7;
 stop_tol = 1e-8;
@@ -16,6 +17,9 @@ sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 ada_sketching_size_control = 2;
 cond_tol = 1e6;
+
+fprintf("quad_tol: %.4e\n", quad_tol);
+fprintf("stop_tol: %.4e\n", stop_tol);
 
 fprintf("m: %d\n", m);
 fprintf("max_restarts: %d\n", max_restarts);

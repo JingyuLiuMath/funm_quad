@@ -439,7 +439,9 @@ for k = 1:param.max_restarts,
                     h1 = h2;
                     N = N2;
                 else
-                    fprintf("quadrature does not converge but exceed max\n");
+                    if param.verbose >= 2,
+                        fprintf("quadrature does not converge but exceed max\n");
+                    end
                     out.num_quadpoints(k) = N;
                     converged = 1;
                 end

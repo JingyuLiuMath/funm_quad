@@ -2,6 +2,7 @@ clear;
 close all;
 rng(2026);
 maxNumCompThreads(1);
+warning off;
 
 quad_tol = 1e-7;
 stop_tol = 1e-8;
@@ -9,13 +10,16 @@ stop_tol = 1e-8;
 m = 100;
 max_restarts = 15;
 ada_max_restarts = 200;
-truncation_length = 0;
+truncation_length = 2;
 max_num_quad_points = 8192;
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 ada_sketching_size_control = 2;
 cond_tol = 1e6;
+
+fprintf("quad_tol: %.4e\n", quad_tol);
+fprintf("stop_tol: %.4e\n", stop_tol);
 
 fprintf("m: %d\n", m);
 fprintf("max_restarts: %d\n", max_restarts);
@@ -265,9 +269,8 @@ if ~isempty(out.appr)
     xlabel('cycle');
     ylabel('rel error compared to exact');
     file_name = "wikivote_rel_err_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
-    saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
+    % saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
     saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
-
 
     figure();
     semilogy(out.update, '--+', "DisplayName", "benchmark");
@@ -283,7 +286,7 @@ if ~isempty(out.appr)
     xlabel('cycle');
     ylabel('update norm');
     file_name = "wikivote_norm_update_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
-    saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
+    % saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
     saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
 
     figure();
@@ -300,7 +303,7 @@ if ~isempty(out.appr)
     xlabel('cycle');
     ylabel('num of quad points');
     file_name = "wikivote_num_quad_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
-    saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
+    % saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
     saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
 
     figure();
@@ -313,6 +316,6 @@ if ~isempty(out.appr)
     xlabel('cycle');
     ylabel('subspace dim');
     file_name = "wikivote_subspace_dim_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
-    saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
+    % saveas(gcf, "./figure/wikivote/" + file_name + ".png", "png");
     saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
 end

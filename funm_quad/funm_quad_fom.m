@@ -128,13 +128,29 @@ for k = 1:param.max_restarts,
                 switch param.last_update
                     case "orth"
                         [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
-                        % [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
+                        [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
+
+                        % V = V_big(:, 1 : m);
+                        % AV = A * V;
+                        % diff_AD = AV - (V * H + v * eta * unit(m, m)');
+                        % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+                        % fprintf("rel decomp err: %.4e\n", rel_err_AD);
+                        % orth_err = norm(V' * v) / norm(v);
+                        % fprintf("rel orth err: %.4e\n", orth_err);
                     case "sorth"
                         S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
                         SV_big = S * V_big(:, 1 : (m + ell));
                         Sv = S * v;
                         [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
-                        % [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
+                        [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
+
+                        % V = V_big(:, 1 : m);
+                        % AV = A * V;
+                        % diff_AD = AV - (V * H + v * eta * unit(m, m)');
+                        % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+                        % fprintf("rel decomp err: %.4e\n", rel_err_AD);
+                        % orth_err = norm((S * V)' * (S * v)) / norm(S * v);
+                        % fprintf("rel orth err: %.4e\n", orth_err);
                 end
             end
             rhs = beta_acc * unit(1 + ell, m + ell);
@@ -460,7 +476,9 @@ for k = 1:param.max_restarts,
                     h1 = h2;
                     N = N2;
                 else
-                    fprintf("quadrature does not converge but exceed max\n");
+                    if param.verbose >= 2,
+                        fprintf("quadrature does not converge but exceed max\n");
+                    end
                     out.num_quadpoints(k) = N;
                     converged = 1;
                 end

@@ -93,15 +93,31 @@ for k = s:m,
     
 end
 
-Sw = SV_big(:, m + 1);
+SV_big = SV_big(:, 1 : m);
 h = H(m+1,m);
 H = H(1:m,1:m);
 if ~isempty(param.last_update)
     switch param.last_update
         case "orth"
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
-            % [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+            [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+
+            % V = V_big(:, 1 : m);
+            % AV = A * V;
+            % diff_AD = AV - (V * H + w * h * unit(m, m)');
+            % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+            % fprintf("rel decomp err: %.4e\n", rel_err_AD);
+            % orth_err = norm(V' * w) / norm(w);
+            % fprintf("rel orth err: %.4e\n", orth_err);
         case "sorth"
-            % nothing need to be done.
+            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+
+            % V = V_big(:, 1 : m);
+            % AV = A * V;
+            % diff_AD = AV - (V * H + w * h * unit(m, m)');
+            % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
+            % fprintf("rel decomp err: %.4e\n", rel_err_AD);
+            % orth_err = norm((S * V)' * (S * w)) / norm(S * w);
+            % fprintf("rel orth err: %.4e\n", orth_err);
     end
 end

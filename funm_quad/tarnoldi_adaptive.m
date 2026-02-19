@@ -111,13 +111,14 @@ m = j;
 % S = sketching_mat(2 * s, n, param.sketching_mat_type);
 % SV_big = S * V_big(:, 1 : (m + 1));
 % Sw = SV_big(:, m + 1);
+SV_big = SV_big(:, 1 : m);
 h = H(m+1,m);
 H = H(1:m,1:m);
 if ~isempty(param.last_update)
     switch param.last_update
         case "orth"
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
-            % [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+            [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
 
             % V = V_big(:, 1 : m);
             % AV = A * V;
@@ -128,7 +129,7 @@ if ~isempty(param.last_update)
             % fprintf("rel orth err: %.4e\n", orth_err);
         case "sorth"
             [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            % [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
             
             % V = V_big(:, 1 : m);
             % AV = A * V;
