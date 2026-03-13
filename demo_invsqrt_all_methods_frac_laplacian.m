@@ -10,7 +10,7 @@ stop_tol = 1e-8;
 m = 300;
 max_restarts = 15;
 ada_max_restarts = 200;
-truncation_length = 2;
+truncation_length = [2, 1, 0];
 max_num_quad_points = 8192;
 
 sketching_mat_type = "sparse sign";
@@ -21,8 +21,8 @@ cond_tol = 1e4;
 method_list = ["benchmark", ...
     "fix FOM-t whitening", ...
     "fix FOM-s", ...
-    "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
-    "ada FOM-s whitening", "ada FOM-st whitening"];
+    "ada FOM-t whitening", ...
+    "ada FOM-st whitening"];
 
 fprintf("quad_tol: %.4e\n", quad_tol);
 fprintf("stop_tol: %.4e\n", stop_tol);
@@ -48,23 +48,23 @@ f_ex = ex_gnutella;
 %% choose parameters for the FUNM_QUAD restart algorithm
 % jingyu: tol and stopping_accruacy are modified
 addpath('funm_quad')
-param.function = 'invSqrt';
-param.restart_length = m;          % each restart cycle consists of 70 Arnoldi iterations
-param.max_restarts = max_restarts;            % perform at most 15 restart cycles
-param.tol = quad_tol;                   % tolerance for quadrature rule
-param.transformation_parameter = 1;     % parameter for the integral transformation
-param.hermitian = 0;                % the matrix A is Hermitian
-param.V_full = 0;                   % set 1 if you need Krylov basis
-param.H_full = 0;                   % do not store all Hessenberg matrices
-param.exact = [];
-param.stopping_accuracy = stop_tol;     % stopping accuracy
-param.inner_product = @(a,b) b'*a;  % use standard Euclidean inner product
-param.thick = [];                   % no implicit deflation is performed
-param.min_decay = .95;              % we desire linear error reduction of rate < .95 
-param.waitbar = 0;                  % show waitbar 
-param.reorth_number = 0;              % #reorthogonalizations
-param.truncation_length = inf;      % truncation length for Arnoldi 
-param.verbose = 1;                  % print information about progress of algorithm
+basic_param.function = 'invSqrt';
+basic_param.restart_length = m;          % each restart cycle consists of 70 Arnoldi iterations
+basic_param.max_restarts = max_restarts;            % perform at most 15 restart cycles
+basic_param.tol = quad_tol;                   % tolerance for quadrature rule
+basic_param.transformation_parameter = 1;     % parameter for the integral transformation
+basic_param.hermitian = 0;                % the matrix A is Hermitian
+basic_param.V_full = 0;                   % set 1 if you need Krylov basis
+basic_param.H_full = 0;                   % do not store all Hessenberg matrices
+basic_param.exact = [];
+basic_param.stopping_accuracy = stop_tol;     % stopping accuracy
+basic_param.inner_product = @(a,b) b'*a;  % use standard Euclidean inner product
+basic_param.thick = [];                   % no implicit deflation is performed
+basic_param.min_decay = .95;              % we desire linear error reduction of rate < .95 
+basic_param.waitbar = 0;                  % show waitbar 
+basic_param.reorth_number = 0;              % #reorthogonalizations
+basic_param.truncation_length = inf;      % truncation length for Arnoldi 
+basic_param.verbose = 1;                  % print information about progress of algorithm
 
 add_param = construct_ada_param(...
     truncation_length, ...
@@ -76,16 +76,15 @@ add_param = construct_ada_param(...
 result_list = run_methods(A, b, f_ex, method_list, basic_param, add_param);
 
 %% save data
-file_name = "./data/frac_laplacian/frac_laplacian_trunc_" + string(truncation_length) + ".mat";
+file_name = "./data/frac_laplacian/frac_laplacian_.mat";
 save(file_name, "result_list");
 
 %% print table
 fprintf("\n\n");
 
-fprintf("t = %d\n", truncation_length);
-
 print_table(result_list);
 
-%% plot 
-save_path = "./figure/frac_laplacian/";
-plot_figures(result_list, save_path, truncation_length);
+%% plot
+exmaple_name = "frac_laplacian";
+save_path = "./figure/" + exmaple_name + "/";
+plot_figures(result_list, exmaple_name, save_path);

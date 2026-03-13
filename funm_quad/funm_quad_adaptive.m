@@ -122,7 +122,7 @@ for k = 1:param.max_restarts,
             V_big(:, ell+1) = v / norm(v);
             [ m,v,H,eta,breakdown,accuracy_flag ] = arnoldi_adaptive( A,m_max,H,ell+1,param );
         end
-        beta = v_value / V_big(tmp_ind, 1);  % b = v_1 * beta
+        beta = v_value / V_big(tmp_ind, ell + 1);  % b = v_1 * beta
         beta_acc = beta_acc * beta;
         m = m - ell;
         rhs = beta_acc * unit(ell+1, m+ell);  % this is because v_old = beta * V(:, 1).

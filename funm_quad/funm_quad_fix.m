@@ -122,7 +122,7 @@ for k = 1:param.max_restarts,
             V_big(:, ell + 1) = v / norm(v);
             [ v,H,eta,breakdown, accuracy_flag ] = arnoldi_fix( A,m+ell,H,ell+1,param );
         end
-        beta = v_value / V_big(tmp_ind, 1);
+        beta = v_value / V_big(tmp_ind, ell + 1);
         beta_acc = beta_acc * beta;
         rhs = beta_acc * unit(1 + ell, m + ell);
     end

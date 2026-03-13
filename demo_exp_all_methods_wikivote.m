@@ -10,7 +10,7 @@ stop_tol = 1e-8;
 m = 100;
 max_restarts = 15;
 ada_max_restarts = 200;
-truncation_length = 2;
+truncation_length = [2, 1, 0];
 max_num_quad_points = 8192;
 
 sketching_mat_type = "sparse sign";
@@ -21,8 +21,8 @@ cond_tol = 1e4;
 method_list = ["benchmark", ...
     "fix FOM-t whitening", ...
     "fix FOM-s", ...
-    "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
-    "ada FOM-s whitening", "ada FOM-st whitening"];
+    "ada FOM-t whitening", ...
+    "ada FOM-st whitening"];
 
 fprintf("quad_tol: %.4e\n", quad_tol);
 fprintf("stop_tol: %.4e\n", stop_tol);
@@ -75,16 +75,15 @@ add_param = construct_ada_param(...
 result_list = run_methods(A, b, f_ex, method_list, basic_param, add_param);
 
 %% save data
-file_name = "./data/wikivote/wikivote_trunc_" + string(truncation_length) + ".mat";
+file_name = "./data/wikivote/wikivote_.mat";
 save(file_name, "result_list");
 
 %% print table
 fprintf("\n\n");
 
-fprintf("t = %d\n", truncation_length);
-
 print_table(result_list);
 
-%% plot 
-save_path = "./figure/wikivote/";
-plot_figures(result_list, save_path, truncation_length);
+%% plot
+exmaple_name = "wikivote";
+save_path = "./figure/" + exmaple_name + "/";
+plot_figures(result_list, exmaple_name, save_path);

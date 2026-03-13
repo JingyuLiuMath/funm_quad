@@ -8,7 +8,7 @@ stop_tol = 1e-8;
 m = 30;
 max_restarts = 15;
 ada_max_restarts = 30;
-truncation_length = 1;
+truncation_length = 0;
 max_num_quad_points = 8192;
 
 sketching_mat_type = "sparse sign";
@@ -16,15 +16,13 @@ sketching_size = 2 * m;
 ada_sketching_size_control = 2;
 cond_tol = 1e6;
 
-method_num = 2;
-switch method_num
-    case 1
-        method = "benchmark";
-    case 2
-        method = "afomt";
-    case 3
-        method = "asfomt";
-end
+method_list = ["benchmark", ...
+    "fix FOM-t whitening", ...
+    "fix FOM-s", ...
+    "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
+    "ada FOM-s whitening", "ada FOM-st whitening"];
+method_name = "ada FOM-t last-sorth";
+
 f = @(x) log(1+x)/x;
 N = 40;
 e = ones(N,1);
@@ -37,96 +35,42 @@ f_ex = exact_poisson_log;
 
 %% Choose parameters for the FUNM_QUAD algorithm (no implicit deflation)
 addpath('funm_quad')
-param.function = 'log';
-param.restart_length = m;              % Each restart cycle consists of 20 Arnoldi iterations
-param.max_restarts = max_restarts;                % We perform at most 20 restart cycles
-param.tol = quad_tol;                      % Tolerance for quadrature rule
-param.hermitian = 0;                    % set 0 if A is not Hermitian
-param.V_full = 0;                       % set 1 if you need Krylov basis
-param.H_full = 0;                       % do not store all Hessenberg matrices
-param.exact = [];        % Exact solution. If not known set to []
-param.stopping_accuracy = stop_tol;        % stopping accuracy
-param.inner_product = @(a,b) b'*a;      % Use standard euclidean inner product
-param.thick = [];                       % No implicit deflation is performed
-param.min_decay = 0.95;                 % we desire linear error reduction of rate < .95
-param.waitbar = 0;                      % show waitbar
-param.reorth_number = 0;                % #reorthogonalizations
-param.truncation_length = inf;          % truncation length for Arnoldi
-param.verbose = 1;                      % print information about progress of algorithm
+basic_param.function = 'log';
+basic_param.restart_length = m;              % Each restart cycle consists of 20 Arnoldi iterations
+basic_param.max_restarts = max_restarts;                % We perform at most 20 restart cycles
+basic_param.tol = quad_tol;                      % Tolerance for quadrature rule
+basic_param.hermitian = 0;                    % set 0 if A is not Hermitian
+basic_param.V_full = 0;                       % set 1 if you need Krylov basis
+basic_param.H_full = 0;                       % do not store all Hessenberg matrices
+basic_param.exact = [];        % Exact solution. If not known set to []
+basic_param.stopping_accuracy = stop_tol;        % stopping accuracy
+basic_param.inner_product = @(a,b) b'*a;      % Use standard euclidean inner product
+basic_param.thick = [];                       % No implicit deflation is performed
+basic_param.min_decay = 0.95;                 % we desire linear error reduction of rate < .95
+basic_param.waitbar = 0;                      % show waitbar
+basic_param.reorth_number = 0;                % #reorthogonalizations
+basic_param.truncation_length = inf;          % truncation length for Arnoldi
+basic_param.verbose = 2;                      % print information about progress of algorithm
+
+add_param = construct_ada_param(...
+    truncation_length, ...
+    max_num_quad_points, ...
+    sketching_mat_type, sketching_size, ...
+    ada_max_restarts, ada_sketching_size_control, cond_tol);
 
 %% compute log(I+A)/A*b using FUNM_QUAD without implicit deflation
-if method == "benchmark"
-    tic
-    [f1,out1] = funm_quad(A,b,param);
-    toc
-elseif method == "afomt"
-    afomt_param = param;
-    afomt_param.restart_length = m;
-    afomt_param.max_restarts = ada_max_restarts;
-    afomt_param.truncation_length = truncation_length;
-    afomt_param.max_num_quad_points = max_num_quad_points;
-    afomt_param.sketching_mat_type = sketching_mat_type;
-    afomt_param.ada_sketching_size_control = ada_sketching_size_control;
-    afomt_param.cond_tol = cond_tol;
-    afomt_param.last_update = "orth";
+result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
 
-    tic
-    [f1,out1] = funm_quad_adaptive(A,b,afomt_param);
-    toc
-elseif method == "asfomt"
-    asfomt_param = param;
-    asfomt_param.restart_length = m;
-    asfomt_param.max_restarts = ada_max_restarts;
-    asfomt_param.truncation_length = truncation_length;
-    asfomt_param.max_num_quad_points = max_num_quad_points;
-    asfomt_param.sketching_mat_type = sketching_mat_type;
-    asfomt_param.ada_sketching_size_control = ada_sketching_size_control;
-    asfomt_param.cond_tol = cond_tol;
-    asfomt_param.last_update = "sorth";
-    % asfomt_param.last_update = "sorth_full";
-
-    tic
-    [f1,out1] = funm_quad_adaptive(A,b,asfomt_param);
-    toc
-end
+f1 = result.f;
+out1 = result.out;
 
 %% adapt parameters for FUNM_QUAD algorithm (with with implicit deflation)
-param.thick = @thick_quad;              % Thick restart function for implicit deflation
-param.number_thick = 5;                 % Number of target eigenvalues for implicit deflation
+basic_param.thick = @thick_quad;              % Thick restart function for implicit deflation
+basic_param.number_thick = 5;                 % Number of target eigenvalues for implicit deflation
 
-if method == "benchmark"
-    tic
-    [f2,out2] = funm_quad(A,b,param);
-    toc
-elseif method == "afomt"
-    afomt_param = param;
-    afomt_param.restart_length = m;
-    afomt_param.max_restarts = ada_max_restarts;
-    afomt_param.truncation_length = truncation_length;
-    afomt_param.max_num_quad_points = max_num_quad_points;
-    afomt_param.sketching_mat_type = sketching_mat_type;
-    afomt_param.ada_sketching_size_control = ada_sketching_size_control;
-    afomt_param.cond_tol = cond_tol;
-    afomt_param.last_update = "orth";
-
-    tic
-    [f2,out2] = funm_quad_adaptive(A,b,afomt_param);
-    toc
-elseif method == "asfomt"
-    asfomt_param = param;
-    asfomt_param.restart_length = m;
-    asfomt_param.max_restarts = ada_max_restarts;
-    asfomt_param.truncation_length = truncation_length;
-    asfomt_param.max_num_quad_points = max_num_quad_points;
-    asfomt_param.sketching_mat_type = sketching_mat_type;
-    asfomt_param.ada_sketching_size_control = ada_sketching_size_control;
-    asfomt_param.cond_tol = cond_tol;
-    asfomt_param.last_update = "sorth";
-
-    tic
-    [f2,out2] = funm_quad_adaptive(A,b,asfomt_param);
-    toc
-end
+result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
+f2 = result.f;
+out2 = result.out;
 
 %% plot
 figure();
@@ -148,11 +92,13 @@ hold off
 
 max_iter = max(size(out1.appr, 2), size(out2.appr, 2));
 xticks(1 : ceil(max_iter / 10) : max_iter);
-if method == "benchmark"
-    file_name = "implicit_deflation_rel_err_" + method + "_" + string(N) + "_" + string(m);
+prefix_char = char(method_name);
+ada_flag = strcmp(prefix_char(1:3), 'ada');
+if ada_flag == 0
+    file_name = "implicit_deflation_rel_err_" + method_name + "_" + string(N) + "_" + string(m);
     saveas(gcf, "./figure/implicit_deflation/" + file_name + ".eps", "epsc");
 else
-    file_name = "implicit_deflation_rel_err_" + method + "_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
+    file_name = "implicit_deflation_rel_err_" + method_name + "_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/implicit_deflation/" + file_name + ".eps", "epsc");
     
     figure();
@@ -164,6 +110,6 @@ else
     yticks(unique([out1.dim, out2.dim]));
     xlabel('cycle');
     ylabel('subspace dim');
-    file_name = "implicit_deflation_subspace_dim_" + method + "_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
+    file_name = "implicit_deflation_subspace_dim_" + method_name + "_" + string(N) + "_" + string(m) + "_" + string(truncation_length);
     saveas(gcf, "./figure/implicit_deflation/" + file_name + ".eps", "epsc");
 end

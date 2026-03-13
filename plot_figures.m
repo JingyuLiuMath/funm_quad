@@ -1,4 +1,4 @@
-function plot_figures(result_list, save_path, truncation_length)
+function plot_figures(result_list, example_name, save_path)
 
 m = length(result_list);
 
@@ -13,39 +13,50 @@ end
 figure();
 for it = 1 : m
     curr_result = result_list{it};
+    t = curr_result.param.truncation_length;
+    if t ~= inf
+        displayname = curr_result.method + " (t = " + string(t) + ")";
+    else
+        displayname = curr_result.method;
+    end
     semilogy(...
         vecnorm(curr_result.f_ex - curr_result.out.appr) / norm(curr_result.f_ex), ...
         '--', ...
         "Marker", marker_list(it), ...
         "Color", color_list(it, :), ...
-        "DisplayName", curr_result.method);
+        "DisplayName",displayname);
     hold on;
 end
-legend;
+legend("location", "southeastoutside");
 xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('rel error');
-file_name = "wikivote_rel_err_trunc_" + string(truncation_length);
-saveas(gcf, save_path + file_name + ".eps", "epsc");
+file_name = example_name + "_rel_err.eps";
+saveas(gcf, save_path + file_name, "epsc");
 
 figure();
 for it = 1 : m
     curr_result = result_list{it};
+    t = curr_result.param.truncation_length;
+    if t ~= inf
+        displayname = curr_result.method + " (t = " + string(t) + ")";
+    else
+        displayname = curr_result.method;
+    end
     semilogy(...
         curr_result.out.update, ...
         '--', ...
         "Marker", marker_list(it), ...
         "Color", color_list(it, :), ...
-        "DisplayName", curr_result.method);
+        "DisplayName",displayname);
     hold on;
 end
-legend;
+legend("location", "southeastoutside");
 xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('update norm');
-file_name = "wikivote_norm_update_trunc_" + string(truncation_length);
-saveas(gcf, save_path + file_name + ".eps", "epsc");
-saveas(gcf, "./figure/wikivote/" + file_name + ".eps", "epsc");
+file_name = example_name + "_norm_update.eps";
+saveas(gcf, save_path + file_name, "epsc");
 
 figure();
 for it = 1 : m
@@ -55,15 +66,15 @@ for it = 1 : m
         '--', ...
         "Marker", marker_list(it), ...
         "Color", color_list(it, :), ...
-        "DisplayName", curr_result.method);
+        "DisplayName",displayname);
     hold on;
 end
-legend;
+legend("location", "southeastoutside");
 xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('num of quad points');
-file_name = "wikivote_num_quad_trunc_" + string(truncation_length);
-saveas(gcf, save_path + file_name + ".eps", "epsc");
+file_name = example_name + "_num_quad.eps";
+saveas(gcf, save_path + file_name, "epsc");
 
 figure();
 for it = 1 : m
@@ -75,15 +86,15 @@ for it = 1 : m
             '--', ...
             "Marker", marker_list(it), ...
             "Color", color_list(it, :), ...
-            "DisplayName", curr_result.method);
+            "DisplayName",displayname);
         hold on;
     end
 end
-legend;
+legend("location", "southeastoutside");
 xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('subspace dim');
-file_name = "wikivote_subspace_dim_trunc_" + string(truncation_length);
-saveas(gcf, save_path + file_name + ".eps", "epsc");
+file_name = example_name + "_subspace_dim.eps";
+saveas(gcf, save_path + file_name, "epsc");
 
 end

@@ -118,9 +118,9 @@ m = j;
 SV_big = SV_big(:, 1 : m);
 h = H(m+1,m);
 H = H(1:m,1:m);
-if ~isempty(param.last_update)
-    switch param.last_update
-        case "orth"
+if ~isempty(param.update)
+    switch param.update
+        case "last_orth"
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
             [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
 
@@ -131,9 +131,9 @@ if ~isempty(param.last_update)
             % fprintf("rel decomp err: %.4e\n", rel_err_AD);
             % orth_err = norm(V' * w) / norm(w);
             % fprintf("rel orth err: %.4e\n", orth_err);
-        case "sorth"
-            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+        case "last_sorth"
+            [w,H,h, Sw] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            [w,H,h, Sw] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
             
             % V = V_big(:, 1 : m);
             % AV = A * V;
