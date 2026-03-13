@@ -70,9 +70,11 @@ afomt_param.max_num_quad_points = max_num_quad_points;
 afomt_param.sketching_mat_type = sketching_mat_type;
 afomt_param.ada_sketching_size_control = ada_sketching_size_control;
 afomt_param.cond_tol = cond_tol;
-afomt_param.last_update = "orth";
+afomt_param.update = "whitening";
+afomt_param.sarnoldi = 0;
 tic;
 [f_afom_t, out_afom_t] = funm_quad_adaptive(A,b,afomt_param);
+% [f_afom_t, out_afom_t] = funm_quad_sanoldi_adaptive(A,b,afomt_param);
 t_afom_t = toc;
 
 num_it = size(out_afom_t.appr, 2);

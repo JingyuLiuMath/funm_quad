@@ -1,4 +1,4 @@
-function [w, Sw, H, h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw)
+function [w, H, h, Sw] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw)
 
 global V_big;
 

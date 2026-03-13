@@ -1,4 +1,4 @@
-function [ m,w,H,h,breakdown,accuracy_flag ] = tarnoldi_adaptive( A, m_max, H, start_ind, param)
+function [ m,w,H,h,breakdown,accuracy_flag ] = arnoldi_adaptive( A, m_max, H, start_ind, param)
 
 accuracy_flag = 0;
 fm = 0;
@@ -111,18 +111,14 @@ for j = start_ind : m_max
 end
 
 m = j;
-% Try a new sketching matrix?
-% S = sketching_mat(2 * s, n, param.sketching_mat_type);
-% SV_big = S * V_big(:, 1 : (m + 1));
-% Sw = SV_big(:, m + 1);
 SV_big = SV_big(:, 1 : m);
 h = H(m+1,m);
 H = H(1:m,1:m);
-if ~isempty(param.last_update)
-    switch param.last_update
-        case "orth"
-            [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
-            [w,H,h] = arnoldi_last_orth_update(m, w, H, h);
+if ~isempty(param.update)
+    switch param.update
+        case "last_orth"
+            % [w, H, h] = arnoldi_last_orth_update(m, w, H, h);
+            [w, H, h] = arnoldi_last_orth_update(m, w, H, h);
 
             % V = V_big(:, 1 : m);
             % AV = A * V;
@@ -131,9 +127,9 @@ if ~isempty(param.last_update)
             % fprintf("rel decomp err: %.4e\n", rel_err_AD);
             % orth_err = norm(V' * w) / norm(w);
             % fprintf("rel orth err: %.4e\n", orth_err);
-        case "sorth"
-            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            [w,Sw,H,h] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+        case "last_sorth"
+            % [w, H, h, Sw] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
+            [w, H, h, ~] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
             
             % V = V_big(:, 1 : m);
             % AV = A * V;
@@ -142,7 +138,9 @@ if ~isempty(param.last_update)
             % fprintf("rel decomp err: %.4e\n", rel_err_AD);
             % orth_err = norm((S * V)' * (S * w)) / norm(S * w);
             % fprintf("rel orth err: %.4e\n", orth_err);
+        case "whitening"
+            [w, H, h, ~, ~] = arnoldi_whitening_update(m, w, H, h, SV_big, Sw);
     end
 end
 
-V_big(:, (m + 1):end) = 0;
+V_big(:, (m + 1) : end) = 0;

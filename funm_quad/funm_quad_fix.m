@@ -1,4 +1,4 @@
-function [f,out,param] = funm_quad_fom(A,b,param)
+function [f,out,param] = funm_quad_fix(A,b,param)
 
 if nargin < 3,
     param = struct;
@@ -75,7 +75,6 @@ end
 beta_acc = 1;
 % restart loop starts here
 for k = 1:param.max_restarts,
-
     % check whether a stop condition is satisfied
     if str2double(out.stop_condition(1)),
         break
@@ -109,52 +108,23 @@ for k = 1:param.max_restarts,
         H = [];
     end
 
+    tmp_ind = find(v, 1);
+    v_value = v(tmp_ind);
+
     % compute/extend Krylov decomposition
     if param.hermitian,
-        [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
+        % [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
     else
         if param.sarnoldi == 1
             V_big(:, ell + 1) = v;
-            [ beta,v,H,eta,breakdown, accuracy_flag ] = sarnoldi( A,m+ell,H,ell+1,param );
-            beta_acc = beta_acc * beta;
-            rhs = beta_acc * unit(1 + ell, m + ell);
+            [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi_fix( A,m+ell,H,ell+1,param );
         else
-            beta = norm(v);
-            V_big(:, ell + 1) = v / beta;
-            beta_acc = beta_acc * beta;
-            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi( A,m+ell,H,ell+1,param );
-
-            if ~isempty(param.last_update)
-                switch param.last_update
-                    case "orth"
-                        [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
-                        [v,H,eta] = arnoldi_last_orth_update(m, v, H, eta);
-
-                        % V = V_big(:, 1 : m);
-                        % AV = A * V;
-                        % diff_AD = AV - (V * H + v * eta * unit(m, m)');
-                        % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
-                        % fprintf("rel decomp err: %.4e\n", rel_err_AD);
-                        % orth_err = norm(V' * v) / norm(v);
-                        % fprintf("rel orth err: %.4e\n", orth_err);
-                    case "sorth"
-                        S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
-                        SV_big = S * V_big(:, 1 : (m + ell));
-                        Sv = S * v;
-                        [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
-                        [v,Sv,H,eta] = arnoldi_last_sorth_update(m, v, H, eta, SV_big, Sv);
-
-                        % V = V_big(:, 1 : m);
-                        % AV = A * V;
-                        % diff_AD = AV - (V * H + v * eta * unit(m, m)');
-                        % rel_err_AD = norm(diff_AD, "fro")/ norm(AV, "fro");
-                        % fprintf("rel decomp err: %.4e\n", rel_err_AD);
-                        % orth_err = norm((S * V)' * (S * v)) / norm(S * v);
-                        % fprintf("rel orth err: %.4e\n", orth_err);
-                end
-            end
-            rhs = beta_acc * unit(1 + ell, m + ell);
+            V_big(:, ell + 1) = v / norm(v);
+            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi_fix( A,m+ell,H,ell+1,param );
         end
+        beta = v_value / V_big(tmp_ind, 1);
+        beta_acc = beta_acc * beta;
+        rhs = beta_acc * unit(1 + ell, m + ell);
     end
 
     if breakdown
