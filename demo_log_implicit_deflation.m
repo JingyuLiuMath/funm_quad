@@ -5,23 +5,23 @@ rng(2026);
 quad_tol = 1e-7;
 stop_tol = 1e-8;
 
-m = 30;
-max_restarts = 15;
+m = 20;
+max_restarts = 20;
 ada_max_restarts = 30;
-truncation_length = 0;
+truncation_length = 2;
 max_num_quad_points = 8192;
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
-ada_sketching_size_control = 2;
-cond_tol = 1e6;
+ada_sketching_size_control = 1;
+cond_tol = 1e4;
 
 method_list = ["benchmark", ...
-    "fix FOM-t whitening", ...
+    "fix FOM-t whitening", "fix FOM-t last-orth", ...
     "fix FOM-s", ...
     "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
     "ada FOM-s whitening", "ada FOM-st whitening"];
-method_name = "ada FOM-t last-sorth";
+method_name = "benchmark";
 
 f = @(x) log(1+x)/x;
 N = 40;
@@ -50,7 +50,7 @@ basic_param.min_decay = 0.95;                 % we desire linear error reduction
 basic_param.waitbar = 0;                      % show waitbar
 basic_param.reorth_number = 0;                % #reorthogonalizations
 basic_param.truncation_length = inf;          % truncation length for Arnoldi
-basic_param.verbose = 2;                      % print information about progress of algorithm
+basic_param.verbose = 1;                      % print information about progress of algorithm
 
 add_param = construct_ada_param(...
     truncation_length, ...
@@ -61,16 +61,19 @@ add_param = construct_ada_param(...
 %% compute log(I+A)/A*b using FUNM_QUAD without implicit deflation
 result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
 
-f1 = result.f;
-out1 = result.out;
+f1 = result{1}.f;
+out1 = result{1}.out;
+fprintf("without implicit deflation, time: %s\n", result{1}.time);
 
 %% adapt parameters for FUNM_QUAD algorithm (with with implicit deflation)
 basic_param.thick = @thick_quad;              % Thick restart function for implicit deflation
 basic_param.number_thick = 5;                 % Number of target eigenvalues for implicit deflation
+basic_param.restart_length = m - 5;
 
 result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
-f2 = result.f;
-out2 = result.out;
+f2 = result{1}.f;
+out2 = result{1}.out;
+fprintf("with implicit deflation, time: %s\n", result{1}.time);
 
 %% plot
 figure();

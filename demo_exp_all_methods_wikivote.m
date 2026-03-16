@@ -1,6 +1,5 @@
 clear;
 close all;
-rng(2026);
 maxNumCompThreads(1);
 warning off;
 
@@ -19,10 +18,14 @@ ada_sketching_size_control = 2;
 cond_tol = 1e4;
 
 method_list = ["benchmark", ...
-    "fix FOM-t whitening", ...
+    "fix FOM-t last-orth", "fix FOM-t last-sorth", "fix FOM-t whitening", ...
     "fix FOM-s", ...
-    "ada FOM-t whitening", ...
+    "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
+    "ada FOM-s last-orth", "ada FOM-s last-sorth", "ada FOM-s whitening", ...
     "ada FOM-st whitening"];
+
+save_flag = 1;
+check_flag = 0;
 
 fprintf("quad_tol: %.4e\n", quad_tol);
 fprintf("stop_tol: %.4e\n", stop_tol);
@@ -64,6 +67,7 @@ basic_param.waitbar = 0;                  % show waitbar
 basic_param.reorth_number = 0;            % #reorthogonalizations
 basic_param.truncation_length = inf;      % truncation length for Arnoldi
 basic_param.verbose = 1;                  % print information about progress of algorithm
+basic_param.check = check_flag;
 
 add_param = construct_ada_param(...
     truncation_length, ...
@@ -76,14 +80,15 @@ result_list = run_methods(A, b, f_ex, method_list, basic_param, add_param);
 
 %% save data
 file_name = "./data/wikivote/wikivote_.mat";
-save(file_name, "result_list");
+if save_flag
+    save(file_name, "result_list");
+end
 
 %% print table
 fprintf("\n\n");
-
 print_table(result_list);
 
 %% plot
 exmaple_name = "wikivote";
 save_path = "./figure/" + exmaple_name + "/";
-plot_figures(result_list, exmaple_name, save_path);
+plot_figures(result_list, exmaple_name, save_path, save_flag);

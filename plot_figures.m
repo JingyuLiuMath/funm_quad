@@ -1,4 +1,4 @@
-function plot_figures(result_list, example_name, save_path)
+function plot_figures(result_list, example_name, save_path, save_flag)
 
 m = length(result_list);
 
@@ -32,7 +32,9 @@ xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('rel error');
 file_name = example_name + "_rel_err.eps";
-saveas(gcf, save_path + file_name, "epsc");
+if save_flag
+    saveas(gcf, save_path + file_name, "epsc");
+end
 
 figure();
 for it = 1 : m
@@ -56,7 +58,9 @@ xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('update norm');
 file_name = example_name + "_norm_update.eps";
-saveas(gcf, save_path + file_name, "epsc");
+if save_flag
+    saveas(gcf, save_path + file_name, "epsc");
+end
 
 figure();
 for it = 1 : m
@@ -74,7 +78,9 @@ xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('num of quad points');
 file_name = example_name + "_num_quad.eps";
-saveas(gcf, save_path + file_name, "epsc");
+if save_flag
+    saveas(gcf, save_path + file_name, "epsc");
+end
 
 figure();
 for it = 1 : m
@@ -95,6 +101,8 @@ xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('subspace dim');
 file_name = example_name + "_subspace_dim.eps";
-saveas(gcf, save_path + file_name, "epsc");
+if save_flag
+    saveas(gcf, save_path + file_name, "epsc");
+end
 
 end

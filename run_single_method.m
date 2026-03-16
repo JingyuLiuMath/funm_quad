@@ -112,6 +112,32 @@ switch method_name
             t = toc;
             result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
         end
+    case "ada FOM-s last-orth"
+        param = basic_param;
+        param.max_restarts = add_param.ada_max_restarts;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.ada_sketching_size_control = add_param.ada_sketching_size_control;
+        param.cond_tol = add_param.cond_tol;
+        param.sarnoldi = 1;
+        param.update = "last_orth";
+        tic;
+        [f,out] = funm_quad_adaptive(A,b,param);
+        t = toc;
+        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
+    case "ada FOM-s last-sorth"
+        param = basic_param;
+        param.max_restarts = add_param.ada_max_restarts;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.ada_sketching_size_control = add_param.ada_sketching_size_control;
+        param.cond_tol = add_param.cond_tol;
+        param.sarnoldi = 1;
+        param.update = "last_sorth";
+        tic;
+        [f,out] = funm_quad_adaptive(A,b,param);
+        t = toc;
+        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
     case "ada FOM-s whitening"
         param = basic_param;
         param.max_restarts = add_param.ada_max_restarts;
@@ -124,7 +150,7 @@ switch method_name
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
         t = toc;
-        result = get_result(f_ex, method_name, param, f, out, t);
+        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
     case "ada FOM-st whitening"
         for k = 1 : m
             param = basic_param;
