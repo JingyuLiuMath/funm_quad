@@ -59,7 +59,7 @@ add_param = construct_ada_param(...
     ada_max_restarts, ada_sketching_size_control, cond_tol);
 
 %% compute log(I+A)/A*b using FUNM_QUAD without implicit deflation
-result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
+result = run_single_method(A, b, f_ex, method_name, basic_param, add_param(1));
 
 f1 = result{1}.f;
 out1 = result{1}.out;
@@ -70,7 +70,7 @@ basic_param.thick = @thick_quad;              % Thick restart function for impli
 basic_param.number_thick = 5;                 % Number of target eigenvalues for implicit deflation
 basic_param.restart_length = m - 5;
 
-result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
+result = run_single_method(A, b, f_ex, method_name, basic_param, add_param(1));
 f2 = result{1}.f;
 out2 = result{1}.out;
 fprintf("with implicit deflation, time: %s\n", result{1}.time);

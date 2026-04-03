@@ -133,11 +133,11 @@ end
 %% Print
 num_it = size(out1.appr, 2);
 rel_err = norm(f_ex - f1) / norm(f_ex);
-fprintf("%s (without deflation) & %d & %.4e & %.4e \\\\ \n", method, num_it, rel_err, t1);
+fprintf("%s (without deflation) & %d & %.1e & %.1e \\ \n", method, num_it, rel_err, t1);
 
 num_it = size(out2.appr, 2);
 rel_err = norm(f_ex - f2) / norm(f_ex);
-fprintf("%s (implicit deflation) & %d & %.4e & %.4e \\\\ \n", method, num_it, rel_err, t2);
+fprintf("%s (implicit deflation) & %d & %.1e & %.1e \\ \n", method, num_it, rel_err, t2);
 
 %% plot
 max_iter = max(size(out1.appr, 2), size(out2.appr, 2));

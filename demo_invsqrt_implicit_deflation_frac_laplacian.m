@@ -58,7 +58,7 @@ add_param = construct_ada_param(...
     ada_max_restarts, ada_sketching_size_control, cond_tol);
 
 %% without implicit deflation
-result1 = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
+result1 = run_single_method(A, b, f_ex, method_name, basic_param, add_param(1));
 
 f1 = result1{1}.f;
 out1 = result1{1}.out;
@@ -69,7 +69,7 @@ basic_param.thick = @thick_quad;              % Thick restart function for impli
 basic_param.number_thick = 5;                 % Number of target eigenvalues for implicit deflation
 % basic_param.restart_length = m - 5;
 
-result2 = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
+result2 = run_single_method(A, b, f_ex, method_name, basic_param, add_param(1));
 f2 = result2{1}.f;
 out2 = result2{1}.out;
 t2 = result2{1}.time;
@@ -77,11 +77,11 @@ t2 = result2{1}.time;
 %% Print
 num_it = size(out1.appr, 2);
 rel_err = norm(f_ex - f1) / norm(f_ex);
-fprintf("%s (without deflation) & %d & %.4e & %.4e \\\\ \n", method_name, num_it, rel_err, t1);
+fprintf("%s (without deflation) & %d & %.1e & %.1e \\ \n", method_name, num_it, rel_err, t1);
 
 num_it = size(out2.appr, 2);
 rel_err = norm(f_ex - f2) / norm(f_ex);
-fprintf("%s (implicit deflation) & %d & %.4e & %.4e \\\\ \n", method_name, num_it, rel_err, t2);
+fprintf("%s (implicit deflation) & %d & %.1e & %.1e \\ \n", method_name, num_it, rel_err, t2);
 
 %% plot
 max_iter = max(size(out1.appr, 2), size(out2.appr, 2));

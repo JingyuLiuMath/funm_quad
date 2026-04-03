@@ -9,6 +9,11 @@ result.param = param;
 result.f = f;
 result.out = out;
 result.time = t;
+if isfield(out, 'check_result')
+	result.check_result = out.check_result;
+else
+	result.check_result = {};
+end
 
 num_it = size(out.appr, 2);
 rel_err = norm(f_ex - f) / norm(f_ex);

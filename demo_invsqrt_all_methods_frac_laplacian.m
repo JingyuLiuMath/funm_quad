@@ -19,28 +19,27 @@ ada_sketching_size_control = 2;
 cond_tol = 1e4;
 
 method_list = ["benchmark", ...
-    "fix FOM-t last-orth", "fix FOM-t last-sorth", "fix FOM-t whitening", ...
     "fix FOM-s", ...
     "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
     "ada FOM-s last-orth", "ada FOM-s last-sorth", "ada FOM-s whitening", ...
-    "ada FOM-st whitening"];
+    ];
 
 save_flag = 1;
 check_flag = 0;
 
-fprintf("quad_tol: %.4e\n", quad_tol);
-fprintf("stop_tol: %.4e\n", stop_tol);
+fprintf("quad_tol: %.1e\n", quad_tol);
+fprintf("stop_tol: %.1e\n", stop_tol);
 
 fprintf("m: %d\n", m);
 fprintf("max_restarts: %d\n", max_restarts);
 fprintf("ada_max_restarts: %d\n", ada_max_restarts);
-fprintf("truncation_length: %d\n", truncation_length);
+fprintf("truncation_length: %s\n", format_numeric_vector(truncation_length));
 fprintf("max_num_quad_points: %d\n", max_num_quad_points);
 
 fprintf("sketching_mat_type: %s\n", sketching_mat_type);
 fprintf("sketching_size: %d\n", sketching_size);
 fprintf("ada_sketcing_size_control: %d\n", ada_sketching_size_control);
-fprintf("cond_tol: %d\n", cond_tol);
+fprintf("cond_tol: %.1e\n", cond_tol);
 
 %% Load matrix.
 load('./data/frac_laplacian/gnutella_comp.mat');
@@ -94,3 +93,7 @@ print_table(result_list);
 exmaple_name = "frac_laplacian";
 save_path = "./figure/" + exmaple_name + "/";
 plot_figures(result_list, exmaple_name, save_path, save_flag);
+
+function text = format_numeric_vector(values)
+text = "[" + strjoin(string(values), ", ") + "]";
+end

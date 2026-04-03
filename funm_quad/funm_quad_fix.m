@@ -57,6 +57,10 @@ if (param.V_full)
     out.V_full = [];
 end
 
+if param.check == 1
+    out.check_result = {};
+end
+
 out.stop_condition = '0 - maximal # of restarts exceeded';
 
 %%
@@ -117,10 +121,13 @@ for k = 1:param.max_restarts,
     else
         if param.sarnoldi == 1
             V_big(:, ell + 1) = v;
-            [ v,H,eta,breakdown, accuracy_flag ] = sarnoldi_fix( A,m+ell,H,ell+1,param );
+            [ v,H,eta,breakdown, accuracy_flag,check_result ] = sarnoldi_fix( A,m+ell,H,ell+1,param );
         else
             V_big(:, ell + 1) = v / norm(v);
-            [ v,H,eta,breakdown, accuracy_flag ] = arnoldi_fix( A,m+ell,H,ell+1,param );
+            [ v,H,eta,breakdown, accuracy_flag,check_result ] = arnoldi_fix( A,m+ell,H,ell+1,param );
+        end
+        if param.check == 1
+            out.check_result{k} = check_result;
         end
         beta = v_value / V_big(tmp_ind, ell + 1);
         beta_acc = beta_acc * beta;

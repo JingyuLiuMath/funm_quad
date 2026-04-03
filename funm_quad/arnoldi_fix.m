@@ -1,4 +1,4 @@
-function [ w,H,h,breakdown,accuracy_flag ] = arnoldi_fix( A,m,H,s,param )
+function [ w,H,h,breakdown,accuracy_flag,check_result ] = arnoldi_fix( A,m,H,s,param )
 %ARNOLDI   Extend a given Arnoldi decomposition (V_big,H) of dimension s
 %  to dimension m. This file has been adapted from the FUNM_KRYL code
 %  described in
@@ -15,6 +15,9 @@ function [ w,H,h,breakdown,accuracy_flag ] = arnoldi_fix( A,m,H,s,param )
 %
 
 accuracy_flag = 0;
+check_result = struct();
+check_result.before = struct('rel_err_AD', [], 'rel_orth_err', [], 'cond_V', []);
+check_result.after = struct('rel_err_AD', [], 'rel_orth_err', [], 'cond_V', []);
 fm = 0;
 tol = param.tol;
 if param.max_restarts == 1
@@ -98,62 +101,62 @@ if ~isempty(param.update)
     switch param.update
         case "last_orth"
             if param.check == 1
-                fprintf("before:\n");
-                check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-                check_cond_V(V_big(:, 1 : m));
+                check_result.before.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                check_result.before.rel_orth_err = check_last_orth(V_big(:, 1 : m), w);
+                check_result.before.cond_V = check_cond_V(V_big(:, 1 : m));
             end
+            
             % [w, H, h] = arnoldi_last_orth_update(m, w, H, h);
             [w, H, h] = arnoldi_last_orth_update(m, w, H, h);
 
             if param.check == 1
-                fprintf("after:\n");
-                check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-                check_last_orth(V_big(:, 1 : m), w);
-                check_cond_V(V_big(:, 1 : m));
+                check_result.after.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                check_result.after.rel_orth_err = check_last_orth(V_big(:, 1 : m), w);
+                check_result.after.cond_V = check_cond_V(V_big(:, 1 : m));
             end
         case "last_sorth"
-            if param.check == 1
-                fprintf("before:\n");
-                check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-                check_cond_V(V_big(:, 1 : m));
-            end
-
             S = sketching_mat(param.sketching_size, size(w, 1), param.sketching_mat_type);
             SV_big = S * V_big(:, 1 : m);
             Sw = S * w;
+
+            if param.check == 1
+                check_result.before.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                check_result.before.rel_orth_err = check_last_sorth(V_big(:, 1 : m), w, S);
+                check_result.before.cond_V = check_cond_V(V_big(:, 1 : m));
+            end
+
             % [w, H, h, Sw] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
             [w, H, h, ~] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
 
             if param.check == 1
-                fprintf("after:\n");
-                check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-                check_last_sorth(V_big(:, 1 : m), w, S);
-                check_cond_V(V_big(:, 1 : m));
+                check_result.after.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                check_result.after.rel_orth_err = check_last_sorth(V_big(:, 1 : m), w, S);
+                check_result.after.cond_V = check_cond_V(V_big(:, 1 : m));
             end
         case "whitening"
-            if param.check == 1
-                fprintf("before:\n");
-                check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-                check_cond_V(V_big(:, 1 : m));
-            end
-
             S = sketching_mat(param.sketching_size, size(w, 1), param.sketching_mat_type);
             SV_big = S * V_big(:, 1 : m);
             Sw = S * w;
+
+            if param.check == 1
+                check_result.before.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                check_result.before.rel_orth_err = check_last_sorth(V_big(:, 1 : m), w, S);
+                check_result.before.cond_V = check_cond_V(V_big(:, 1 : m));
+            end
+
             [w, H, h, ~, ~] = arnoldi_whitening_update(m, w, H, h, SV_big, Sw);
 
             if param.check == 1
-                fprintf("after:\n");
-                check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-                check_last_sorth(V_big(:, 1 : m), w, S);
-                check_cond_V(V_big(:, 1 : m));
+                check_result.after.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                check_result.after.rel_orth_err = check_last_sorth(V_big(:, 1 : m), w, S);
+                check_result.after.cond_V = check_cond_V(V_big(:, 1 : m));
             end
     end
 else
     if param.check == 1
-        fprintf("before:\n");
-        check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
-        check_cond_V(V_big(:, 1 : m));
+        check_result.before.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+        check_result.before.rel_orth_err = check_last_orth(V_big(:, 1 : m), w);
+        check_result.before.cond_V = check_cond_V(V_big(:, 1 : m));
     end
 end
 
