@@ -100,7 +100,7 @@ for k = 1:param.max_restarts,
     % compute A-invariant subspace of prev. cycle (thick restart)
     if (~isempty(param.thick) && k > 1),
         ell_prev = ell;
-        [ ell,U,T,D ] = param.thick( U,T,D, param.number_thick );
+        [ ell,U,T,D ] = param.thick( U,T,D, min(param.number_thick, m) );
         out.thick_replaced{k-1} = D(1:ell);
         out.thick_interpol{k-1} = D(ell+1:end);
         if ell,
@@ -126,7 +126,7 @@ for k = 1:param.max_restarts,
             V_big(:, ell+1) = v;
             [ m,v,H,eta,breakdown,accuracy_flag,check_result ] = sarnoldi_adaptive( A,m_max,H,ell+1,param );
         else
-            V_big(:, ell+1) = v / norm(v);
+            V_big(:, ell+1) = v;
             [ m,v,H,eta,breakdown,accuracy_flag,check_result ] = arnoldi_adaptive( A,m_max,H,ell+1,param );
         end
         if param.check == 1

@@ -81,8 +81,7 @@ beta_acc = 1;
 % Generate fixed sketching matrix before restart cycles
 global S
 if isfield(param, "sketching_size")
-    % S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
-    S = sketching_mat(n, n, "Gaussian");
+    S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
 end
 
 % restart loop starts here
@@ -111,10 +110,6 @@ for k = 1:param.max_restarts,
         if ell,
             U = U(:,1:ell);
             V_big(:,1:ell) = V_big(:,1:m+ell_prev)*U;
-            % SV_big = S * V_big(:,1:ell);
-            % E = SV_big' * SV_big;
-            % E = eye(size(E)) - E;
-            % norm(E, "fro")
             H_hat = U'*H*U;
             H = [H_hat; eta*U(end,:)];
         else
@@ -135,7 +130,7 @@ for k = 1:param.max_restarts,
             V_big(:, ell + 1) = v;
             [ v,H,eta,breakdown, accuracy_flag,check_result ] = sarnoldi_fix( A,m+ell,H,ell+1,param );
         else
-            V_big(:, ell + 1) = v / norm(v);
+            V_big(:, ell + 1) = v;
             [ v,H,eta,breakdown, accuracy_flag,check_result ] = arnoldi_fix( A,m+ell,H,ell+1,param );
         end
         if param.check == 1
