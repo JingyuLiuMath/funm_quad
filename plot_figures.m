@@ -28,7 +28,7 @@ for it = 1 : m
     hold on;
 end
 legend("location", "southeastoutside");
-xticks(1 : ceil(max_iter / 10) : max_iter);
+% xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('rel error');
 file_name = example_name + "_rel_err.eps";
@@ -54,7 +54,7 @@ for it = 1 : m
     hold on;
 end
 legend("location", "southeastoutside");
-xticks(1 : ceil(max_iter / 10) : max_iter);
+% xticks(1 : ceil(max_iter / 10) : max_iter);
 xlabel('cycle');
 ylabel('update norm');
 file_name = example_name + "_norm_update.eps";

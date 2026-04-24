@@ -47,7 +47,7 @@ fprintf("ada_sketcing_size_control: %d\n", ada_sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
 
 %% Load matrix.
-load('./data/frac_laplacian/gnutella_comp.mat');
+load('./data/frac_laplacian_invsqrt/gnutella_comp.mat');
 A = L;
 N = size(A, 1);
 b = A * b;
