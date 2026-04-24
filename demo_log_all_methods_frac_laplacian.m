@@ -51,12 +51,31 @@ load('./data/frac_laplacian/gnutella_comp.mat');
 A = L;
 N = size(A, 1);
 b = A * b;
-f_ex = ex_gnutella;
+
+exact_param.function = 'log';
+exact_param.restart_length = m; 
+exact_param.max_restarts = max_restarts;
+exact_param.tol = 1e-15;
+exact_param.transformation_parameter = 1;
+exact_param.hermitian = 0;
+exact_param.V_full = 0;
+exact_param.H_full = 0;
+exact_param.exact = [];
+exact_param.stopping_accuracy = 1e-15;
+exact_param.inner_product = @(a,b) b'*a;
+exact_param.thick = [];
+exact_param.min_decay = .95;
+exact_param.waitbar = 0;
+exact_param.reorth_number = 0;
+exact_param.truncation_length = inf;
+exact_param.verbose = 1;
+
+[f_ex, ~] = funm_quad(A, b, exact_param);
 
 %% choose parameters for the FUNM_QUAD restart algorithm
 % jingyu: tol and stopping_accruacy are modified
 addpath('funm_quad')
-basic_param.function = 'invSqrt';
+basic_param.function = 'log';
 basic_param.restart_length = m;          % each restart cycle consists of 70 Arnoldi iterations
 basic_param.max_restarts = max_restarts;            % perform at most 15 restart cycles
 basic_param.tol = quad_tol;                   % tolerance for quadrature rule
@@ -85,7 +104,7 @@ add_param = construct_ada_param(...
 result_list = run_methods(A, b, f_ex, method_list, basic_param, add_param);
 
 %% save data
-file_name = "./data/frac_laplacian_invsqrt/frac_laplacian.mat";
+file_name = "./data/frac_laplacian_log/frac_laplacian.mat";
 if save_flag
     save(file_name, "result_list");
 end
@@ -95,7 +114,7 @@ fprintf("\n\n");
 print_table(result_list);
 
 %% plot
-exmaple_name = "frac_laplacian_invsqrt";
+exmaple_name = "frac_laplacian_log";
 save_path = "./figure/" + exmaple_name + "/";
 plot_figures(result_list, exmaple_name, save_path, save_flag);
 

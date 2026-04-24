@@ -87,7 +87,7 @@ add_param = construct_ada_param(...
 result_list = run_methods(A, b, f_ex, method_list, basic_param, add_param);
 
 %% save data
-file_name = "./data/qcd/qcd_.mat";
+file_name = "./data/qcd_invsqrt/qcd.mat";
 if save_flag
     save(file_name, "result_list");
 end
@@ -97,7 +97,7 @@ fprintf("\n\n");
 print_table(result_list);
 
 %% plot
-exmaple_name = "qcd";
+exmaple_name = "qcd_invsqrt";
 save_path = "./figure/" + exmaple_name + "/";
 plot_figures(result_list, exmaple_name, save_path, save_flag);
 

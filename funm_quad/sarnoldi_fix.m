@@ -23,10 +23,11 @@ global V_big;
 global S
 SV_big = zeros(size(S, 1), size(V_big, 2));
 
-Sw  = S * V_big(:, 1);
+SV_big(:, 1 : s) = S * V_big(:, 1 : s);
+Sw  = SV_big(:, s);
 beta = norm(Sw);
-V_big(:, 1) = V_big(:, 1) / beta;
-SV_big(:, 1) = Sw / beta;
+V_big(:, s) = V_big(:, s) / beta;
+SV_big(:, s) = Sw / beta;
 
 H(m+1,m) = 0;
 trunc = param.truncation_length;
