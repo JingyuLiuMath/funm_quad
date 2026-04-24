@@ -19,7 +19,7 @@ for it = 1 : m
     else
         displayname = curr_result.method;
     end
-    semilogy(...
+    loglog(...
         vecnorm(curr_result.f_ex - curr_result.out.appr) / norm(curr_result.f_ex), ...
         '--', ...
         "Marker", marker_list(it), ...
@@ -45,7 +45,7 @@ for it = 1 : m
     else
         displayname = curr_result.method;
     end
-    semilogy(...
+    loglog(...
         curr_result.out.update, ...
         '--', ...
         "Marker", marker_list(it), ...
@@ -65,12 +65,18 @@ end
 figure();
 for it = 1 : m
     curr_result = result_list{it};
+    t = curr_result.param.truncation_length;
+    if t ~= inf
+        displayname = curr_result.method + " (t = " + string(t) + ")";
+    else
+        displayname = curr_result.method;
+    end
     plot(...
         curr_result.out.num_quadpoints, ...
         '--', ...
         "Marker", marker_list(it), ...
         "Color", color_list(it, :), ...
-        "DisplayName",displayname);
+        "DisplayName", displayname);
     hold on;
 end
 legend("location", "southeastoutside");
@@ -85,6 +91,12 @@ end
 figure();
 for it = 1 : m
     curr_result = result_list{it};
+    t = curr_result.param.truncation_length;
+    if t ~= inf
+        displayname = curr_result.method + " (t = " + string(t) + ")";
+    else
+        displayname = curr_result.method;
+    end
     prefix_char = char(curr_result.method);
     ada_flag = strcmp(prefix_char(1:3), 'ada');
     if ada_flag

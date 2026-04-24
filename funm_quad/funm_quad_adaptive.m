@@ -77,6 +77,9 @@ if strcmp(param.function,'invSqrt')
 end
 
 beta_acc = 1;
+
+global S;
+
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied

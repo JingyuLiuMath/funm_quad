@@ -11,17 +11,21 @@ ada_max_restarts = 30;
 truncation_length = 2;
 max_num_quad_points = 8192;
 
-sketching_mat_type = "sparse sign";
+check_flag = 0;
+
+sketching_mat_type = "Gaussian";
 sketching_size = 2 * m;
 ada_sketching_size_control = 1;
 cond_tol = 1e4;
 
+% 挂了的 fix FOM-s
+% 
 method_list = ["benchmark", ...
-    "fix FOM-t whitening", "fix FOM-t last-orth", ...
+    "fix FOM-t last-orth", "fix FOM-t last-sorth", ...
     "fix FOM-s", ...
-    "ada FOM-t last-orth", "ada FOM-t last-sorth", "ada FOM-t whitening", ...
-    "ada FOM-s whitening", "ada FOM-st whitening"];
-method_name = "benchmark";
+    "ada FOM-t last-orth", "ada FOM-t last-sorth", ...
+    "ada FOM-s last-orth", "ada FOM-s last-sorth"];
+method_name = "fix FOM-t last-orth";
 
 f = @(x) log(1+x)/x;
 N = 40;
@@ -42,7 +46,7 @@ basic_param.tol = quad_tol;                      % Tolerance for quadrature rule
 basic_param.hermitian = 0;                    % set 0 if A is not Hermitian
 basic_param.V_full = 0;                       % set 1 if you need Krylov basis
 basic_param.H_full = 0;                       % do not store all Hessenberg matrices
-basic_param.exact = [];        % Exact solution. If not known set to []
+basic_param.exact = f_ex;        % Exact solution. If not known set to []
 basic_param.stopping_accuracy = stop_tol;        % stopping accuracy
 basic_param.inner_product = @(a,b) b'*a;      % Use standard euclidean inner product
 basic_param.thick = [];                       % No implicit deflation is performed
@@ -51,6 +55,7 @@ basic_param.waitbar = 0;                      % show waitbar
 basic_param.reorth_number = 0;                % #reorthogonalizations
 basic_param.truncation_length = inf;          % truncation length for Arnoldi
 basic_param.verbose = 1;                      % print information about progress of algorithm
+basic_param.check = check_flag;
 
 add_param = construct_ada_param(...
     truncation_length, ...
@@ -59,7 +64,7 @@ add_param = construct_ada_param(...
     ada_max_restarts, ada_sketching_size_control, cond_tol);
 
 %% compute log(I+A)/A*b using FUNM_QUAD without implicit deflation
-result = run_single_method(A, b, f_ex, method_name, basic_param, add_param(1));
+result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
 
 f1 = result{1}.f;
 out1 = result{1}.out;
@@ -68,21 +73,21 @@ fprintf("without implicit deflation, time: %s\n", result{1}.time);
 %% adapt parameters for FUNM_QUAD algorithm (with with implicit deflation)
 basic_param.thick = @thick_quad;              % Thick restart function for implicit deflation
 basic_param.number_thick = 5;                 % Number of target eigenvalues for implicit deflation
-basic_param.restart_length = m - 5;
+basic_param.restart_length = m - basic_param.number_thick;
 
-result = run_single_method(A, b, f_ex, method_name, basic_param, add_param(1));
-f2 = result{1}.f;
-out2 = result{1}.out;
-fprintf("with implicit deflation, time: %s\n", result{1}.time);
+% result = run_single_method(A, b, f_ex, method_name, basic_param, add_param);
+% f2 = result{1}.f;
+% out2 = result{1}.out;
+% fprintf("with implicit deflation, time: %s\n", result{1}.time);
 
 %% plot
-figure();
-err1 = vecnorm(f_ex - out1.appr) / norm(f_ex);
-semilogy(err1,'g--+')
-hold on
-for k = 2:length(err1)
-    text(k+0.1,2*err1(k),num2str(out1.num_quadpoints(k)),'Color',[0 1 0],'FontSize',16,'Rotation',45);
-end
+% figure();
+% err1 = vecnorm(f_ex - out1.appr) / norm(f_ex);
+% semilogy(err1,'g--+')
+% hold on
+% for k = 2:length(err1)
+%     text(k+0.1,2*err1(k),num2str(out1.num_quadpoints(k)),'Color',[0 1 0],'FontSize',16,'Rotation',45);
+% end
 err2 = vecnorm(f_ex - out2.appr) / norm(f_ex);
 semilogy(err2,'m--+')
 for k = 2:length(err2)

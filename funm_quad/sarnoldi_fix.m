@@ -20,8 +20,7 @@ end
 
 global V_big;
 
-skectching_size = param.sketching_size;
-S = sketching_mat(skectching_size, size(V_big, 1), param.sketching_mat_type);
+global S
 SV_big = zeros(size(S, 1), size(V_big, 2));
 
 Sw  = S * V_big(:, 1);

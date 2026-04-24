@@ -77,6 +77,13 @@ if strcmp(param.function,'invSqrt')
 end
 
 beta_acc = 1;
+
+% Generate fixed sketching matrix before restart cycles
+global S
+if isfield(param, "sketching_size")
+    S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
+end
+
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied

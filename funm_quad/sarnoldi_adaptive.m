@@ -19,26 +19,23 @@ if param.max_restarts == 1
 end
 
 global V_big;
+global S
 H(m_max + 1, m_max) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
 cond_tol = param.cond_tol;
 breakdown = 0;
 
-n = size(V_big, 1);
-if start_ind == 1
+if isempty(S)
+    n = size(V_big, 1);
     if param.sketching_mat_type == "exact"
         s0 = n;
     else
         s0 = 30;
     end
     S = sketching_mat(s0, n, param.sketching_mat_type);
-    s = s0;
-else
-    s0 = 2 * start_ind;
-    S = sketching_mat(s0, n, param.sketching_mat_type);
-    s = s0;
 end
+s = size(S, 1);
 
 SV_big = zeros(s, m_max);
 Sw = S * V_big(:, 1);
@@ -78,14 +75,7 @@ for j = start_ind : m_max
         V_big(:, j + 1) = w;
         SV_big(:, j + 1) = Sw;
 
-        if s < param.ada_sketching_size_control * (j + 1)
-            S_incr = sketching_mat(s0, n, param.sketching_mat_type);
-            S = [S; S_incr];
-            SV_big = [SV_big;
-                S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
-            Sw = SV_big(:, j + 1);
-            s = s + s0;
-        end
+        % Sketching matrix S is fixed (global)
 
         if cond(SV_big(:, 1 : (j + 1))) > cond_tol
             break;

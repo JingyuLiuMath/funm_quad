@@ -115,7 +115,7 @@ if ~isempty(param.update)
                 check_result.after.cond_V = check_cond_V(V_big(:, 1 : m));
             end
         case "last_sorth"
-            S = sketching_mat(param.sketching_size, size(w, 1), param.sketching_mat_type);
+            global S
             SV_big = S * V_big(:, 1 : m);
             Sw = S * w;
 
@@ -134,7 +134,7 @@ if ~isempty(param.update)
                 check_result.after.cond_V = check_cond_V(V_big(:, 1 : m));
             end
         case "whitening"
-            S = sketching_mat(param.sketching_size, size(w, 1), param.sketching_mat_type);
+            global S
             SV_big = S * V_big(:, 1 : m);
             Sw = S * w;
 

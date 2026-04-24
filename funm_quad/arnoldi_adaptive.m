@@ -19,26 +19,23 @@ if param.max_restarts == 1
 end
 
 global V_big;
+global S
 H(m_max + 1, m_max) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
 cond_tol = param.cond_tol;
 breakdown = 0;
 
-n = size(V_big, 1);
-if start_ind == 1
+if isempty(S)
+    n = size(V_big, 1);
     if param.sketching_mat_type == "exact"
         s0 = n;
     else
         s0 = 30;
     end
     S = sketching_mat(s0, n, param.sketching_mat_type);
-    s = s0;
-else
-    s0 = 2 * start_ind;
-    S = sketching_mat(s0, n, param.sketching_mat_type);
-    s = s0;
 end
+s = size(S, 1);
 
 SV_big = zeros(s, m_max);
 SV_big(:, 1 : start_ind) = S * V_big(:, 1 : start_ind);
@@ -143,7 +140,7 @@ if ~isempty(param.update)
 
             % [w, H, h, Sw] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
             [w, H, h, ~] = arnoldi_last_sorth_update(m, w, H, h, SV_big, Sw);
-            
+
             if param.check == 1
                 check_result.after.rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
                 check_result.after.rel_orth_err = check_last_sorth(V_big(:, 1 : m), w, S);
