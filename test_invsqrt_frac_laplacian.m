@@ -26,7 +26,7 @@ method_list = [...
 
 check_flag = 0;
 
-file_prefix = "./data/frac_laplacian_invsqrt/";
+data_prefix = "./data/frac_laplacian_invsqrt/";
 
 fprintf("quad_tol: %.1e\n", quad_tol);
 fprintf("stop_tol: %.1e\n", stop_tol);
@@ -46,7 +46,7 @@ fprintf("sketching_size: %d\n", sketching_size);
 fprintf("ada_sketcing_size_control: %d\n", ada_sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
 
-fprintf("file_prefix: %s\n", file_prefix);
+fprintf("file_prefix: %s\n", data_prefix);
 
 %% Load matrix.
 load('./data/frac_laplacian/gnutella_comp.mat');
@@ -98,7 +98,7 @@ for it_method = 1 : num_method
             result = run_single_method(A, b, method_name, basic_param, add_param);
             result.save_name = save_name;
             
-            save(file_prefix + save_name  + ".mat", "result");
+            save(data_prefix + save_name  + ".mat", "result");
         end
     else
         truncation_length = inf;
@@ -116,6 +116,6 @@ for it_method = 1 : num_method
         result = run_single_method(A, b, method_name, basic_param, add_param);
         result.save_name = save_name;
         
-        save(file_prefix + save_name  + ".mat", "result");
+        save(data_prefix + save_name  + ".mat", "result");
     end
 end

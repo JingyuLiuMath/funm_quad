@@ -7,15 +7,15 @@ method_list = [...
     "fix_sFOM_s", ...
     "ada_sFOM_t"
     ];
-file_prefix = "./data/qcd_log/";
 
+data_prefix = "./data/qcd_log/";
 
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)
     fprintf("%d ", truncation_length_list(it));
 end
 fprintf("\n");
-fprintf("file_prefix: %s\n", file_prefix);
+fprintf("file_prefix: %s\n", data_prefix);
 
 %% Load matrix.
 load("./data/qcd/qcd_matrix_nonhermitian.mat");
@@ -64,13 +64,13 @@ for it_method = 1 : num_method
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);
             save_name = method_name + "_" + string(truncation_length);
-            load(file_prefix + save_name  + ".mat");
+            load(data_prefix + save_name  + ".mat");
             print_result(save_name, result, f_ex);
         end
     else
         truncation_length = inf;
         save_name = method_name;
-        load(file_prefix + save_name  + ".mat");
+        load(data_prefix + save_name  + ".mat");
         print_result(save_name, result, f_ex);
     end
 end
