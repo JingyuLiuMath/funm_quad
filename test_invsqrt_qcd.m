@@ -1,4 +1,4 @@
-clear;
+clear all;
 close all;
 rng(2026);
 maxNumCompThreads(1);

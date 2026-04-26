@@ -1,7 +1,5 @@
 function [ m,w,H,h,breakdown,accuracy_flag, num_oracle] = arnoldi_adaptive( A, m_old, H, start_ind, param)
 
-m_max = 100;
-
 accuracy_flag = 0;
 fm = 0;
 tol = param.tol;
@@ -25,14 +23,17 @@ reo = param.reorth_number;
 cond_tol = param.cond_tol;
 breakdown = 0;
 
+
+s0 = 30;
+n = size(V_big, 1);
+m_max = n;
 if isempty(S)
-    n = size(V_big, 1);
     if param.sketching_mat_type == "exact"
-        s0 = n;
+        S = sketching_mat(n, n, param.sketching_mat_type);
     else
         s0 = 30;
+        S = sketching_mat(s0, n, param.sketching_mat_type);
     end
-    S = sketching_mat(s0, n, param.sketching_mat_type);
 end
 s = size(S, 1);
 
@@ -75,7 +76,7 @@ for j = start_ind : m_max
             S_incr = sketching_mat(s0, n, param.sketching_mat_type);
             S = [S; S_incr];
             SV_big = [SV_big;
-                S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_old - (j + 1))];
+                S_incr * V_big(:, 1 : (j + 1)), zeros(s0, m_max - (j + 1))];
             Sw = SV_big(:, j + 1);
             s = s + s0;
         end

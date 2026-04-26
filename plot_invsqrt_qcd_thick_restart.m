@@ -8,8 +8,8 @@ method_list = [...
     "ada_sFOM_t"
     ];
 
-data_prefix = "./data/frac_laplacian_invsqrt_thick_restart/";
-figure_prefix = "./figure/frac_laplacian_invsqrt_thick_restart/frac_laplacian_invsqrt_thick_restart";
+data_prefix = "./data/qcd_invsqrt_thick_restart/";
+figure_prefix = "./figure/qcd_invsqrt_thick_restart/qcd_invsqrt_thick_restart";
 
 results_list_without = [];
 results_list_with = [];
@@ -22,8 +22,11 @@ fprintf("\n");
 fprintf("file_prefix: %s\n", data_prefix);
 
 %% Load matrix.
-load('./data/frac_laplacian/gnutella_comp.mat');
-f_ex = ex_gnutella;
+load("./data/qcd/qcd_matrix_nonhermitian.mat");
+load("./data/qcd/qcd_nonhermitian_exact.mat");
+c = zeros(size(Q,1),1); c(1) = 1;
+b = Q*c; normv = norm(b);
+f_ex = qcd_nonhermitian_exact / normv;
 
 %% print methods.
 num_truncate_len = length(truncation_length_list);

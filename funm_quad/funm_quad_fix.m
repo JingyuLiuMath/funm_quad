@@ -76,7 +76,8 @@ end
 beta_acc = 1;
 
 % Generate fixed sketching matrix before restart cycles
-global S
+global S;
+S = [];
 if isfield(param, "sketching_size")
     S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
 end
@@ -529,7 +530,9 @@ if param.waitbar,
     close(hand);
 end
 
-clear V_big
+V_big = [];
+S = [];
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

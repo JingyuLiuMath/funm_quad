@@ -34,7 +34,8 @@ if param.waitbar,
 end
 
 n = length(b);
-v = b;
+norm_b = norm(b);
+v = b / norm_b;
 if param.restart_length >= n,
     if param.verbose >= 1,
         disp('Warning: Restart length larger than matrix dimension. Running Arnoldi/Lanczos without restarts.');
@@ -75,6 +76,7 @@ end
 beta_acc = 1;
 
 global S;
+S = [];
 out.num_oracle = 0;
 % restart loop starts here
 for k = 1:param.max_restarts,
@@ -130,7 +132,7 @@ for k = 1:param.max_restarts,
         beta = v_value / V_big(tmp_ind, ell + 1);  % b = v_1 * beta
         beta_acc = beta_acc * beta;
         m = m - ell;
-        rhs = beta_acc * unit(ell+1, m+ell);  % this is because v_old = beta * V(:, 1).
+        rhs = norm_b * beta_acc * unit(ell+1, m+ell);  % this is because v_old = beta * V(:, 1).
     end
 
     if breakdown
@@ -522,7 +524,9 @@ if param.waitbar,
     close(hand);
 end
 
-clear V_big
+V_big = [];
+S = [];
+
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
