@@ -105,24 +105,39 @@ for it_method = 1 : num_method
     if endsWith(method_name, "_t")
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);
+            
+            save_name = method_name + "_" + string(truncation_length);
+            fprintf("\n\n");
+            fprintf("%s\n", save_name);
 
             add_param = construct_ada_param(...
                 truncation_length, ...
                 max_num_quad_points, ...
                 sketching_mat_type, sketching_size, ...
                 ada_max_restarts, ada_sketching_size_control, cond_tol);
+
             result = run_single_method(A, b, method_name, basic_param, add_param);
-            save(file_prefix + result.savename  + ".mat", "result");
+            result.save_name = save_name;
+
+            save(file_prefix + save_name  + ".mat", "result");
         end
     else
         truncation_length = inf;
+
+        save_name = method_name;
+        fprintf("\n\n");
+        fprintf("%s\n", save_name);
+        
         add_param = construct_ada_param(...
             truncation_length, ...
             max_num_quad_points, ...
             sketching_mat_type, sketching_size, ...
             ada_max_restarts, ada_sketching_size_control, cond_tol);
+
         result = run_single_method(A, b, method_name, basic_param, add_param);
-        save(file_prefix + result.savename  + ".mat", "result");
+        result.save_name = save_name;
+        
+        save(file_prefix + save_name  + ".mat", "result");
     end
 end
 

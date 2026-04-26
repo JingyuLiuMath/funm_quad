@@ -26,7 +26,7 @@ method_list = [...
 
 check_flag = 0;
 
-file_prefix = "./data/frac_laplacian_invsqrt/";
+file_prefix = "./data/frac_laplacian_log/";
 
 fprintf("quad_tol: %.1e\n", quad_tol);
 fprintf("stop_tol: %.1e\n", stop_tol);
@@ -53,11 +53,30 @@ load('./data/frac_laplacian/gnutella_comp.mat');
 A = L;
 N = size(A, 1);
 b = A * b;
-f_ex = ex_gnutella;
+
+exact_param.function = 'log';
+exact_param.restart_length = m; 
+exact_param.max_restarts = max_restarts;
+exact_param.tol = 1e-15;
+exact_param.transformation_parameter = 1;
+exact_param.hermitian = 0;
+exact_param.V_full = 0;
+exact_param.H_full = 0;
+exact_param.exact = [];
+exact_param.stopping_accuracy = 1e-15;
+exact_param.inner_product = @(a,b) b'*a;
+exact_param.thick = [];
+exact_param.min_decay = .95;
+exact_param.waitbar = 0;
+exact_param.reorth_number = 0;
+exact_param.truncation_length = inf;
+exact_param.verbose = 1;
+
+[f_ex, ~] = funm_quad(A, b, exact_param);
 
 %% choose parameters for the FUNM_QUAD restart algorithm
 addpath('funm_quad')
-basic_param.function = 'invSqrt';
+basic_param.function = 'log';
 basic_param.restart_length = m;
 basic_param.max_restarts = max_restarts;
 basic_param.tol = quad_tol; 
@@ -94,7 +113,10 @@ for it_method = 1 : num_method
                 max_num_quad_points, ...
                 sketching_mat_type, sketching_size, ...
                 ada_max_restarts, ada_sketching_size_control, cond_tol);
+
             result = run_single_method(A, b, method_name, basic_param, add_param);
+            result.save_name = save_name;
+
             save(file_prefix + save_name  + ".mat", "result");
         end
     else
@@ -109,7 +131,14 @@ for it_method = 1 : num_method
             max_num_quad_points, ...
             sketching_mat_type, sketching_size, ...
             ada_max_restarts, ada_sketching_size_control, cond_tol);
+
         result = run_single_method(A, b, method_name, basic_param, add_param);
+        result.save_name = save_name;
+        
         save(file_prefix + save_name  + ".mat", "result");
     end
+end
+
+function text = format_numeric_vector(values)
+text = "[" + strjoin(string(values), ", ") + "]";
 end

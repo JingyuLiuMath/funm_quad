@@ -7,7 +7,7 @@ method_list = [...
     "fix_sFOM_s", ...
     "ada_sFOM_t"
     ];
-file_prefix = "./data/frac_laplacian_invsqrt/";
+file_prefix = "./data/frac_laplacian_log/";
 
 
 fprintf("truncation_length: ");
@@ -19,13 +19,35 @@ fprintf("file_prefix: %s\n", file_prefix);
 
 %% Load matrix.
 load('./data/frac_laplacian/gnutella_comp.mat');
-f_ex = ex_gnutella;
+A = L;
+b = A * b;
+
+addpath('funm_quad')
+exact_param.function = 'log';
+exact_param.restart_length = 300; 
+exact_param.max_restarts = 15;
+exact_param.tol = 1e-15;
+exact_param.transformation_parameter = 1;
+exact_param.hermitian = 0;
+exact_param.V_full = 0;
+exact_param.H_full = 0;
+exact_param.exact = [];
+exact_param.stopping_accuracy = 1e-15;
+exact_param.inner_product = @(a,b) b'*a;
+exact_param.thick = [];
+exact_param.min_decay = .95;
+exact_param.waitbar = 0;
+exact_param.reorth_number = 0;
+exact_param.truncation_length = inf;
+exact_param.verbose = 1;
+
+[f_ex, ~] = funm_quad(A, b, exact_param);
 
 %% print methods.
 caption_name = "Relative error, time, iteration number and oracle number" + ...
-    " of the invsqrt function" + ...
+    " of the log function" + ...
     " for the fractional Laplacian example";
-label_name = "invsqrt_frac_laplacian";
+label_name = "log_frac_laplacian";
 fprintf("\n");
 fprintf("\\begin{table}[tbhp]\n")
 fprintf("\\centering\n")

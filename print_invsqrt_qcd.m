@@ -7,25 +7,27 @@ method_list = [...
     "fix_sFOM_s", ...
     "ada_sFOM_t"
     ];
-file_prefix = "./data/frac_laplacian_invsqrt/";
+file_prefix = "./data/qcd_invsqrt/";
 
 
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)
     fprintf("%d ", truncation_length_list(it));
 end
-fprintf("\n");
 fprintf("file_prefix: %s\n", file_prefix);
 
 %% Load matrix.
-load('./data/frac_laplacian/gnutella_comp.mat');
-f_ex = ex_gnutella;
+load("./data/qcd/qcd_matrix_nonhermitian.mat");
+load("./data/qcd/qcd_nonhermitian_exact.mat");
+c = zeros(size(Q,1),1); c(1) = 1;
+b = Q*c; normv = norm(b);
+f_ex = qcd_nonhermitian_exact / normv;
 
 %% print methods.
 caption_name = "Relative error, time, iteration number and oracle number" + ...
     " of the invsqrt function" + ...
-    " for the fractional Laplacian example";
-label_name = "invsqrt_frac_laplacian";
+    " for the QCD example";
+label_name = "invsqrt_qcd";
 fprintf("\n");
 fprintf("\\begin{table}[tbhp]\n")
 fprintf("\\centering\n")

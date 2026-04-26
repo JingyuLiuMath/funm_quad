@@ -26,7 +26,7 @@ method_list = [...
 
 check_flag = 0;
 
-file_prefix = "./data/qcd_invsqrt/";
+file_prefix = "./data/frac_laplacian_invsqrt/";
 
 fprintf("quad_tol: %.1e\n", quad_tol);
 fprintf("stop_tol: %.1e\n", stop_tol);
@@ -49,13 +49,11 @@ fprintf("cond_tol: %.1e\n", cond_tol);
 fprintf("file_prefix: %s\n", file_prefix);
 
 %% Load matrix.
-load("./data/qcd/qcd_matrix_nonhermitian.mat");
-N = size(Q, 1);
-A = @(v) Q * (Q * v);
-load("./data/qcd/qcd_nonhermitian_exact.mat");
-c = zeros(N,1); c(1) = 1;
-b = Q*c; normv = norm(b); b = b/norm(b);
-f_ex = qcd_nonhermitian_exact / normv;
+load('./data/frac_laplacian/gnutella_comp.mat');
+A = L;
+N = size(A, 1);
+b = A * b;
+f_ex = ex_gnutella;
 
 %% choose parameters for the FUNM_QUAD restart algorithm
 addpath('funm_quad')
@@ -86,27 +84,38 @@ for it_method = 1 : num_method
     if endsWith(method_name, "_t")
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);
+            
+            save_name = method_name + "_" + string(truncation_length);
+            fprintf("\n\n");
+            fprintf("%s\n", save_name);
 
             add_param = construct_ada_param(...
                 truncation_length, ...
                 max_num_quad_points, ...
                 sketching_mat_type, sketching_size, ...
                 ada_max_restarts, ada_sketching_size_control, cond_tol);
+
             result = run_single_method(A, b, method_name, basic_param, add_param);
-            save(file_prefix + result.savename  + ".mat", "result");
+            result.save_name = save_name;
+            
+            save(file_prefix + save_name  + ".mat", "result");
         end
     else
         truncation_length = inf;
+
+        save_name = method_name;
+        fprintf("\n\n");
+        fprintf("%s\n", save_name);
+        
         add_param = construct_ada_param(...
             truncation_length, ...
             max_num_quad_points, ...
             sketching_mat_type, sketching_size, ...
             ada_max_restarts, ada_sketching_size_control, cond_tol);
-        result = run_single_method(A, b, method_name, basic_param, add_param);
-        save(file_prefix + result.savename  + ".mat", "result");
-    end
-end
 
-function text = format_numeric_vector(values)
-text = "[" + strjoin(string(values), ", ") + "]";
+        result = run_single_method(A, b, method_name, basic_param, add_param);
+        result.save_name = save_name;
+        
+        save(file_prefix + save_name  + ".mat", "result");
+    end
 end
