@@ -1,4 +1,4 @@
-function [ v1,H,h,breakdown,accuracy_flag ] = lanczos( A,m,H,s,param )
+function [ v1,H,h,breakdown,accuracy_flag,num_oracle ] = lanczos( A,m,H,s,param )
 %LANCZOS extend a given Lanczos decomposition (V_big,H) of dimension s
 %  to dimension m. This file has been adapted from the FUNM_KRYL code
 %  described in
@@ -34,6 +34,7 @@ global V_big
 H(m+1,m) = 0;
 
 % orthog first mvp against ALL previous
+num_oracle = 0;
 
 v0 = V_big(:,s);
 if isnumeric(A),
@@ -41,6 +42,7 @@ if isnumeric(A),
 else
     w = A(v0);
 end;
+num_oracle = num_oracle + 1;
 
 for j = 1:s,
     ip = param.inner_product(w,V_big(:,j));
@@ -60,6 +62,8 @@ for k = s+1:m,
     else
         w = A(v1);
     end;
+    num_oracle = num_oracle + 1;
+
     w = w - H(k-1,k)*v0;
     H(k,k) = param.inner_product(w,v1);
     w = w - H(k,k)*v1;

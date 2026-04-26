@@ -1,183 +1,89 @@
-function result = run_single_method(A, b, f_ex, method_name, basic_param, add_param)
+function result = run_single_method(A, b, method_name, basic_param, add_param)
 
-result = {};
+result = struct();
 
-base_add_param = add_param{1};
-m = numel(add_param);
+% fprintf("  function: %s\n", basic_param.function);
+% fprintf("  restart_length: %d\n", basic_param.restart_length);
+% fprintf("  max_restarts: %d\n", basic_param.max_restarts);
 
-% fprintf("\n\n");
-% fprintf("%s\n", method_name);
 switch method_name
-    case "benchmark"
+    case "fix_FOM"
         param = basic_param;
-        tic
-        [f,out] = funm_quad(A,b,param);
+        savename = "fix_FOM";
+
+        fprintf("\n\n");
+        fprintf("%s\n", savename);
+
+        tic;
+        [f, out] = funm_quad_fix(A,b,param);
         t = toc;
-        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    % case "fix FOM-t"
-    %     for k = 1 : m
-    %         curr_add_param = add_param{k};
-    %         param = basic_param;
-    %         param.truncation_length = curr_add_param.truncation_length;
-    %         param.max_num_quad_points = curr_add_param.max_num_quad_points;
-    %         param.sarnoldi = 0;
-    %         param.update = [];
-    %         tic;
-    %         [f,out] = funm_quad_fix(A,b,param);
-    %         t = toc;
-    %         result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    %     end
-    % case "fix FOM-t last-sorth"
-    %     for k = 1 : m
-    %         curr_add_param = add_param{k};
-    %         param = basic_param;
-    %         param.truncation_length = curr_add_param.truncation_length;
-    %         param.max_num_quad_points = curr_add_param.max_num_quad_points;
-    %         param.sketching_mat_type = curr_add_param.sketching_mat_type;
-    %         param.sketching_size = curr_add_param.sketching_size;
-    %         param.sarnoldi = 0;
-    %         param.update = "last_sorth";
-    %         tic;
-    %         [f,out] = funm_quad_fix(A,b,param);
-    %         t = toc;
-    %         result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    %     end
-    % case "fix FOM-t whitening"
-    %     for k = 1 : m
-    %         curr_add_param = add_param{k};
-    %         param = basic_param;
-    %         param.truncation_length = curr_add_param.truncation_length;
-    %         param.max_num_quad_points = curr_add_param.max_num_quad_points;
-    %         param.sketching_mat_type = curr_add_param.sketching_mat_type;
-    %         param.sketching_size = curr_add_param.sketching_size;
-    %         param.sarnoldi = 0;
-    %         param.update = "whitening";
-    %         tic;
-    %         [f,out] = funm_quad_fix(A,b,param);
-    %         t = toc;
-    %         result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    %     end
-    case "fix FOM-s"
+    case "fix_sFOM_s"
         param = basic_param;
-        param.max_num_quad_points = base_add_param.max_num_quad_points;
-        param.sketching_mat_type = base_add_param.sketching_mat_type;
-        param.sketching_size = base_add_param.sketching_size;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.sketching_size = add_param.sketching_size;
         param.sarnoldi = 1;
         param.update = "last_sorth";
+
+        savename = "fix_sFOM_s";
+
+        fprintf("\n\n");
+        fprintf("%s\n", savename);
+
         tic;
         [f,out] = funm_quad_fix(A,b,param);
         t = toc;
-        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    case "ada FOM-t"
-        for k = 1 : m
-            curr_add_param = add_param{k};
-            param = basic_param;
-            param.max_restarts = curr_add_param.ada_max_restarts;
-            param.truncation_length = curr_add_param.truncation_length;
-            param.max_num_quad_points = curr_add_param.max_num_quad_points;
-            param.sketching_mat_type = curr_add_param.sketching_mat_type;
-            param.ada_sketching_size_control = curr_add_param.ada_sketching_size_control;
-            param.cond_tol = curr_add_param.cond_tol;
-            param.sarnoldi = 0;
-            param.update = [];
-            tic;
-            [f,out] = funm_quad_adaptive(A,b,param);
-            t = toc;
-            result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-        end
-    case "ada FOM-t last-sorth"
-        for k = 1 : m
-            curr_add_param = add_param{k};
-            param = basic_param;
-            param.max_restarts = curr_add_param.ada_max_restarts;
-            param.truncation_length = curr_add_param.truncation_length;
-            param.max_num_quad_points = curr_add_param.max_num_quad_points;
-            param.sketching_mat_type = curr_add_param.sketching_mat_type;
-            param.ada_sketching_size_control = curr_add_param.ada_sketching_size_control;
-            param.cond_tol = curr_add_param.cond_tol;
-            param.sarnoldi = 0;
-            param.update = "last_sorth";
-            tic;
-            [f,out] = funm_quad_adaptive(A,b,param);
-            t = toc;
-            result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-        end
-    case "ada FOM-t whitening"
-        for k = 1 : m
-            curr_add_param = add_param{k};
-            param = basic_param;
-            param.max_restarts = curr_add_param.ada_max_restarts;
-            param.truncation_length = curr_add_param.truncation_length;
-            param.max_num_quad_points = curr_add_param.max_num_quad_points;
-            param.sketching_mat_type = curr_add_param.sketching_mat_type;
-            param.ada_sketching_size_control = curr_add_param.ada_sketching_size_control;
-            param.cond_tol = curr_add_param.cond_tol;
-            param.sarnoldi = 0;
-            param.update = "whitening";
-            tic;
-            [f,out] = funm_quad_adaptive(A,b,param);
-            t = toc;
-            result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-        end
-    case "ada FOM-s last-orth"
+    case "ada_FOM_t"
         param = basic_param;
-        param.max_restarts = base_add_param.ada_max_restarts;
-        param.truncation_length = base_add_param.truncation_length;
-        param.max_num_quad_points = base_add_param.max_num_quad_points;
-        param.sketching_mat_type = base_add_param.sketching_mat_type;
-        param.ada_sketching_size_control = base_add_param.ada_sketching_size_control;
-        param.cond_tol = base_add_param.cond_tol;
-        param.sarnoldi = 1;
-        param.update = "last_orth";
+        param.max_restarts = add_param.ada_max_restarts;
+        param.truncation_length = add_param.truncation_length;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.ada_sketching_size_control = add_param.ada_sketching_size_control;
+        param.cond_tol = add_param.cond_tol;
+        param.sarnoldi = 0;
+        param.update = [];
+
+        savename = "ada_FOM_t" + "_" + string(param.truncation_length);
+
+        fprintf("\n\n");
+        fprintf("%s\n", savename);
+
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
         t = toc;
-        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    case "ada FOM-s last-sorth"
+    case "ada_sFOM_t"
         param = basic_param;
-        param.max_restarts = base_add_param.ada_max_restarts;
-        param.truncation_length = base_add_param.truncation_length;
-        param.max_num_quad_points = base_add_param.max_num_quad_points;
-        param.sketching_mat_type = base_add_param.sketching_mat_type;
-        param.ada_sketching_size_control = base_add_param.ada_sketching_size_control;
-        param.cond_tol = base_add_param.cond_tol;
-        param.sarnoldi = 1;
+        param.max_restarts = add_param.ada_max_restarts;
+        param.truncation_length = add_param.truncation_length;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.ada_sketching_size_control = add_param.ada_sketching_size_control;
+        param.cond_tol = add_param.cond_tol;
+        param.sarnoldi = 0;
         param.update = "last_sorth";
+
+        savename = "ada_sFOM_t" + "_" + string(param.truncation_length);
+
+        fprintf("\n\n");
+        fprintf("%s\n", savename);
+
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
         t = toc;
-        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    case "ada FOM-s whitening"
-        param = basic_param;
-        param.max_restarts = base_add_param.ada_max_restarts;
-        param.truncation_length = base_add_param.truncation_length;
-        param.max_num_quad_points = base_add_param.max_num_quad_points;
-        param.sketching_mat_type = base_add_param.sketching_mat_type;
-        param.ada_sketching_size_control = base_add_param.ada_sketching_size_control;
-        param.cond_tol = base_add_param.cond_tol;
-        param.sarnoldi = 1;
-        param.update = "whitening";
-        tic;
-        [f,out] = funm_quad_adaptive(A,b,param);
-        t = toc;
-        result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    % case "ada FOM-st whitening"
-    %     for k = 1 : m
-    %         curr_add_param = add_param{k};
-    %         param = basic_param;
-    %         param.max_restarts = curr_add_param.ada_max_restarts;
-    %         param.truncation_length = curr_add_param.truncation_length;
-    %         param.max_num_quad_points = curr_add_param.max_num_quad_points;
-    %         param.sketching_mat_type = curr_add_param.sketching_mat_type;
-    %         param.ada_sketching_size_control = curr_add_param.ada_sketching_size_control;
-    %         param.cond_tol = curr_add_param.cond_tol;
-    %         param.sarnoldi = 1;
-    %         param.update = "whitening";
-    %         tic;
-    %         [f,out] = funm_quad_adaptive(A,b,param);
-    %         t = toc;
-    %         result{end + 1} = get_result(f_ex, method_name, param, f, out, t);
-    %     end
 end
+
+result = struct();
+
+result.method = method_name;
+result.param = param;
+result.f = f;
+result.out = out;
+result.time = t;
+num_it = size(out.appr, 2);
+result.num_it = num_it;
+result.num_oracle = out.num_oracle;
+result.savename = savename;
+
 
 end

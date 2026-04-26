@@ -57,10 +57,6 @@ if (param.V_full)
     out.V_full = [];
 end
 
-if param.check == 1
-    out.check_result = {};
-end
-
 out.stop_condition = '0 - maximal # of restarts exceeded';
 
 %%
@@ -83,7 +79,7 @@ global S
 if isfield(param, "sketching_size")
     S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
 end
-
+out.num_oracle = 0;
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
@@ -128,13 +124,12 @@ for k = 1:param.max_restarts,
     else
         if param.sarnoldi == 1
             V_big(:, ell + 1) = v;
-            [ v,H,eta,breakdown, accuracy_flag,check_result ] = sarnoldi_fix( A,m+ell,H,ell+1,param );
+            [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = sarnoldi_fix( A,m+ell,H,ell+1,param );
+            out.num_oracle = out.num_oracle + num_oracle;
         else
             V_big(:, ell + 1) = v;
-            [ v,H,eta,breakdown, accuracy_flag,check_result ] = arnoldi_fix( A,m+ell,H,ell+1,param );
-        end
-        if param.check == 1
-            out.check_result{k} = check_result;
+            [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = arnoldi_fix( A,m+ell,H,ell+1,param );
+            out.num_oracle = out.num_oracle + num_oracle;
         end
         beta = v_value / V_big(tmp_ind, ell + 1);
         beta_acc = beta_acc * beta;
@@ -485,6 +480,7 @@ for k = 1:param.max_restarts,
 
     out.appr(:,k) = f;
     out.update(k) = norm(f_update);  % norm of update
+    out.dim(k) = m + ell;
 
 
     % keep track of subdiagonal entries of Hessenberg matrix

@@ -18,7 +18,7 @@ sketching_size = 2 * m;
 ada_sketching_size_control = 2;
 cond_tol = 1e4;
 
-check_flag = 1;
+check_flag = 10;
 
 method_list = [...
     "benchmark", ...
@@ -38,7 +38,7 @@ fprintf("max_num_quad_points: %d\n", max_num_quad_points);
 
 fprintf("sketching_mat_type: %s\n", sketching_mat_type);
 fprintf("sketching_size: %d\n", sketching_size);
-fprintf("ada_sketcing_size_control: %d\n", ada_sketching_size_control);
+fprintf("ada_sketching_size_control: %d\n", ada_sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
 
 %% Load matrix.

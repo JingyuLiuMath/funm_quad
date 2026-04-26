@@ -57,10 +57,6 @@ if (param.V_full)
     out.V_full = [];
 end
 
-if param.check == 1
-    out.check_result = {};
-end
-
 out.stop_condition = '0 - maximal # of restarts exceeded';
 
 %%
@@ -79,7 +75,7 @@ end
 beta_acc = 1;
 
 global S;
-
+out.num_oracle = 0;
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
@@ -124,13 +120,12 @@ for k = 1:param.max_restarts,
     else
         if param.sarnoldi == 1
             V_big(:, ell+1) = v;
-            [ m,v,H,eta,breakdown,accuracy_flag,check_result ] = sarnoldi_adaptive( A,m_max,H,ell+1,param );
+            [ m,v,H,eta,breakdown,accuracy_flag, num_oracle ] = sarnoldi_adaptive( A,m_max,H,ell+1,param );
+            out.num_oracle = out.num_oracle + num_oracle;
         else
             V_big(:, ell+1) = v;
-            [ m,v,H,eta,breakdown,accuracy_flag,check_result ] = arnoldi_adaptive( A,m_max,H,ell+1,param );
-        end
-        if param.check == 1
-            out.check_result{k} = check_result;
+            [ m,v,H,eta,breakdown,accuracy_flag,num_oracle ] = arnoldi_adaptive( A,m_max,H,ell+1,param );
+            out.num_oracle = out.num_oracle + num_oracle;
         end
         beta = v_value / V_big(tmp_ind, ell + 1);  % b = v_1 * beta
         beta_acc = beta_acc * beta;
