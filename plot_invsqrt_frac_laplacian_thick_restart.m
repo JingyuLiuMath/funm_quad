@@ -1,4 +1,4 @@
-clear;
+clear all;
 close all;
 
 truncation_length_list = [2, 1, 0];

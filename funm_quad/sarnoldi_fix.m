@@ -1,4 +1,4 @@
-function [ w,H,h,breakdown,accuracy_flag, num_oracle ] = sarnoldi_fix( A,m,H,s,param )
+function [ w,H,h,breakdown,accuracy_flag, num_oracle ] = sarnoldi_fix( S,A,m,H,s,param )
 
 accuracy_flag = 0;
 fm = 0;
@@ -17,9 +17,7 @@ end
 
 global V_big;
 
-global S;
 SV_big = zeros(size(S, 1), size(V_big, 2));
-
 SV_big(:, 1 : s) = S * V_big(:, 1 : s);
 Sw  = SV_big(:, s);
 beta = norm(Sw);

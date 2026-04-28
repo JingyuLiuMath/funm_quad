@@ -124,7 +124,7 @@ if ~isempty(param.update)
                 fprintf("  cond_V: %.1e\n", cond_V);
             end
         case "last_sorth"
-            global S;
+            S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
             SV_big = S * V_big(:, 1 : m);
             Sw = S * w;
 
@@ -153,7 +153,7 @@ if ~isempty(param.update)
                 fprintf("  cond_V: %.1e\n", cond_V);
             end
         case "whitening"
-            global S;
+            S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
             SV_big = S * V_big(:, 1 : m);
             Sw = S * w;
 

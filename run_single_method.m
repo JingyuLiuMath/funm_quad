@@ -1,7 +1,7 @@
 function result = run_single_method(A, b, method_name, basic_param, add_param)
 
 switch method_name
-    case "fix_FOM"
+    case "FOM"
         param = basic_param;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.sarnoldi = 0;
@@ -10,38 +10,23 @@ switch method_name
         tic;
         [f, out] = funm_quad_fix(A,b,param);
         t = toc;
-    case "fix_sFOM_s"
+    case "sFOM_s"
         param = basic_param;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.sketching_mat_type = add_param.sketching_mat_type;
         param.sketching_size = add_param.sketching_size;
         param.sarnoldi = 1;
-        param.update = "last_sorth";
+        param.update = [];
 
         tic;
         [f,out] = funm_quad_fix(A,b,param);
         t = toc;
-    case "ada_FOM_t"
+    case "sFOM_t"
         param = basic_param;
-        param.max_restarts = add_param.ada_max_restarts;
         param.truncation_length = add_param.truncation_length;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.sketching_mat_type = add_param.sketching_mat_type;
-        param.ada_sketching_size_control = add_param.ada_sketching_size_control;
-        param.cond_tol = add_param.cond_tol;
-        param.sarnoldi = 0;
-        param.update = [];
-
-        tic;
-        [f,out] = funm_quad_adaptive(A,b,param);
-        t = toc;
-    case "ada_sFOM_t"
-        param = basic_param;
-        param.max_restarts = add_param.ada_max_restarts;
-        param.truncation_length = add_param.truncation_length;
-        param.max_num_quad_points = add_param.max_num_quad_points;
-        param.sketching_mat_type = add_param.sketching_mat_type;
-        param.ada_sketching_size_control = add_param.ada_sketching_size_control;
+        param.sketching_size_control = add_param.sketching_size_control;
         param.cond_tol = add_param.cond_tol;
         param.sarnoldi = 0;
         param.update = "last_sorth";

@@ -74,10 +74,9 @@ if strcmp(param.function,'invSqrt')
 end
 
 beta_acc = 1;
-
-global S;
-S = [];
-out.num_oracle = 0;
+if param.sarnoldi == 0
+    S = [];
+end
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
@@ -118,16 +117,17 @@ for k = 1:param.max_restarts,
 
     % compute/extend Krylov decomposition
     if param.hermitian,
-        % [ v,H,eta,breakdown, accuracy_flag ] = lanczos( A,m+ell,H,ell+1,param );
+        error("Only support non-Hermitian matrix!")
     else
         if param.sarnoldi == 1
-            V_big(:, ell+1) = v;
-            [ m,v,H,eta,breakdown,accuracy_flag, num_oracle ] = sarnoldi_adaptive( A,m_max,H,ell+1,param );
-            out.num_oracle = out.num_oracle + num_oracle;
+            % This feature is currently not supported.
+            % V_big(:, ell+1) = v;
+            % [ m,v,H,eta,breakdown,accuracy_flag, num_oracle ] = sarnoldi_adaptive( A,m_max,H,ell+1,param );
+            % out.num_oracle(k) = num_oracle;
         else
             V_big(:, ell+1) = v;
-            [ m,v,H,eta,breakdown,accuracy_flag,num_oracle ] = arnoldi_adaptive( A,m_max,H,ell+1,param );
-            out.num_oracle = out.num_oracle + num_oracle;
+            [ m,v,H,eta,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S, A,m_max,H,ell+1,param );
+            out.num_oracle(k) = num_oracle;
         end
         beta = v_value / V_big(tmp_ind, ell + 1);  % b = v_1 * beta
         beta_acc = beta_acc * beta;
@@ -142,7 +142,7 @@ for k = 1:param.max_restarts,
                 if param.hermitian == 0,
                     disp(['Arnoldi breakdown in cycle ', num2str(k),', iteration ',num2str(breakdown)]);
                 else
-                    disp(['Lanczos breakdown in cycle ', num2str(k),', iteration ',num2str(breakdown)]);
+                    error("Only support non-Hermitian matrix!")
                 end
             end
             H = H(1:breakdown+ell,1:breakdown+ell);
@@ -274,28 +274,7 @@ for k = 1:param.max_restarts,
                 end
 
                 if param.hermitian % for Hermitian matrices, use diagonalization and scalar quadrature
-                    ee = unit(ell+1,ell+m);
-                    ww = WW\ee;
-                    h1 = zeros(size(ee));
-                    switch fun_switch
-                        case 1
-                            for j = 1:length(t)
-                                h1 = h1 + weights(j)*rho_vec(j)*((-beta_transform*(1-t(j))*eye(ell+m)-DD*(1+t(j)))\ww);
-                            end
-                            h1 = -2*sqrt(beta_transform)/pi*h1;
-                        case 2
-                            for j = 1:length(t)
-                                h1 = h1 + weights(j)*rho_vec(j)*((DD*(1+t(j))+2*eye(ell+m))\ww);
-                            end
-                        case 3
-                            c = c(1:N/2).*rho_vec.';
-                            h1 = zeros(m+ell,1);
-                            for j = 1:N/2
-                                h1 = h1 - c(j)*((z(j)*speye(size(DD))-DD)\ww);
-                            end
-                            h1 = 2*real(h1);
-                    end
-                    h1 = WW*h1;
+                    error("Only support non-Hermitian matrix!")
                 else % for non-Hermitian matrices, use matrix quadrature to avoid diagonalization
                     h1 = zeros(size(rhs));
                     switch fun_switch
@@ -378,44 +357,7 @@ for k = 1:param.max_restarts,
             end
 
             if param.hermitian || fun_switch == 4   %for Hermitian matrices, use diagonalization and scalar quadrature
-                ee = unit(ell+1,ell+m);
-                ww = WW\ee;
-                h2 = zeros(size(ee));
-                switch fun_switch
-                    case 1
-                        for j = 1:length(t2)
-                            h2 = h2 + weights2(j)*rho_vec2(j)*((-beta_transform*(1-t2(j))*eye(ell+m)-DD*(1+t2(j)))\ww);
-                        end
-                        h2 = -2*sqrt(beta_transform)/pi*h2;
-                    case 2
-                        for j = 1:length(t2)
-                            h2 = h2 + weights2(j)*rho_vec2(j)*((DD*(1+t2(j))+2*eye(ell+m))\ww);
-                        end
-                    case 3
-                        c2 = c2(1:N2/2).*rho_vec2.';
-                        for j = 1:N2/2
-                            h2 = h2 - c2(j)*((z2(j)*speye(size(DD))-DD)\ww);
-                        end
-                        h2 = 2*real(h2);
-                    case 4
-                        out.num_quadpoints(k) = 0;
-                        max_err = 0;
-                        for j = 1:m+ell
-                            fun = @(t) param.function(DD(j,j),t) .* evalnodal(t, active_nodes, subdiag);
-                            [I,errbnd,npts] = myintegral(fun,-inf,0,'AbsTol',tol,'RelTol',tol);
-                            out.num_quadpoints(k) = max([npts out.num_quadpoints(k)]);
-                            max_err = max(max_err,errbnd);
-                            h2(j) = I;
-                        end
-                        if param.verbose >= 2,
-                            disp([num2str(out.num_quadpoints(k)),' quadrature points were used. Error bound: ', num2str(max_err)])
-                        end
-                        h2 = (WW*spdiags(h2,0,m+ell,m+ell)/WW)*ee;
-                        converged = 1;
-                end
-                if fun_switch ~= 4
-                    h2 = WW*h2;
-                end
+                error("Only support non-Hermitian matrix!")
             else %for non-Hermitian matrices, use matrix quadrature to avoid diagonalization
                 h2 = zeros(size(rhs));
                 switch fun_switch
@@ -525,7 +467,6 @@ if param.waitbar,
 end
 
 V_big = [];
-S = [];
 
 end
 
