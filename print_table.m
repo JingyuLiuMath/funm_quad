@@ -6,6 +6,8 @@ function print_table(data_prefix, f_ex, ...
 fprintf("\n");
 fprintf("\\begin{table}[tbhp]\n")
 fprintf("\\centering\n")
+fprintf("\\caption{%s}\n", caption_name);
+fprintf("\\label{tab:%s}\n", label_name);
 fprintf("\\begin{tabular}{ccccc}\n")
 fprintf("\\toprule\n")
 fprintf("Method & error & time & iter number & oracle number \\\\ \n")
@@ -29,8 +31,6 @@ for it_method = 1 : num_method
 end
 fprintf("\\bottomrule\n");
 fprintf("\\end{tabular}\n");
-fprintf("\\caption{%s}\n", caption_name);
-fprintf("\\label{tab:%s}\n", label_name);
 fprintf("\\end{table}\n");
 fprintf("\n");
 

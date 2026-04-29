@@ -1,17 +1,15 @@
 clear all;
 close all;
 
-truncation_length_list = [2, 1, 0];
+data_prefix = "./data/network_exp/";
+figure_prefix = "./figure/network_exp";
+
 method_list = [...
-    "fix_FOM", ...
-    "fix_sFOM_s", ...
-    "ada_sFOM_t"
+    "FOM", ...
+    "sFOM_s", ...
+    "sFOM_t"
     ];
-
-data_prefix = "./data/wiki_vote_exp/";
-figure_prefix = "./figure/wiki_vote_exp/wiki_vote_exp";
-
-results_list = [];
+truncation_length_list = [2, 1, 0];
 
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)
@@ -27,8 +25,8 @@ fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
 
 %% Load matrix.
-load('./data/wiki_vote/wiki-Vote.mat');
-load('./data/wiki_vote/wiki-Vote-comp.mat');
+load('./data/network/wiki-Vote.mat');
+load('./data/network/wiki-Vote-comp.mat');
 
 A = -Problem.A; ee = -ee; N = size(A,1); 
 b = ones(N,1);

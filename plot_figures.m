@@ -46,7 +46,7 @@ for it = 1 : num_result
     hold on;
 end
 legend("location", "southeastoutside");
-xlabel('cycle');
+xlabel('number of matrix-vector products');
 ylabel('rel error');
 file_name = figure_prefix + "_rel_err.eps";
 saveas(gcf, file_name, "epsc");
@@ -56,7 +56,7 @@ for it = 1 : num_result
     curr_result = results_list(it);
     display_name = replace(curr_result.save_name, "_", "-");
 
-    loglog(curr_result.out.update, ...
+    semilogy(curr_result.out.update, ...
         '--', ...
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
@@ -64,7 +64,7 @@ for it = 1 : num_result
     hold on;
 end
 legend("location", "southeastoutside");
-xlabel('cycle');
+xlabel('iteration');
 ylabel('update norm');
 file_name = figure_prefix + "_norm_update.eps";
 saveas(gcf, file_name, "epsc");
@@ -82,7 +82,7 @@ for it = 1 : num_result
     hold on;
 end
 legend("location", "southeastoutside");
-xlabel('cycle');
+xlabel('iteration');
 ylabel('num of quad points');
 file_name = figure_prefix + "_num_quad.eps";
 saveas(gcf, file_name, "epsc");
@@ -100,7 +100,7 @@ for it = 1 : num_result
         hold on;
 end
 legend("location", "southeastoutside");
-xlabel('cycle');
+xlabel('iteration');
 ylabel('subspace dim');
 file_name = figure_prefix + "_subspace_dim.eps";
 saveas(gcf, file_name, "epsc");

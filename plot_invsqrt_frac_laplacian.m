@@ -1,15 +1,15 @@
 clear all;
 close all;
 
+data_prefix = "./data/frac_laplacian_invsqrt/";
+figure_prefix = "./figure/frac_laplacian_invsqrt/frac_laplacian_invsqrt";
+
 method_list = [...
     "FOM", ...
     "sFOM_s", ...
     "sFOM_t"
     ];
 truncation_length_list = [2, 1, 0];
-
-data_prefix = "./data/frac_laplacian_invsqrt/";
-figure_prefix = "./figure/frac_laplacian_invsqrt/frac_laplacian_invsqrt";
 
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)

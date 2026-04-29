@@ -22,14 +22,13 @@ reo = param.reorth_number;
 cond_tol = param.cond_tol;
 breakdown = 0;
 
+s0 = 30;
+ n = size(V_big, 1);
 m_max = param.restart_length;
 if isempty(S)
-    s0 = 30;
-    n = size(V_big, 1);
     if param.sketching_mat_type == "exact"
         S = sketching_mat(n, n, param.sketching_mat_type);
     else
-        s0 = 30;
         S = sketching_mat(s0, n, param.sketching_mat_type);
     end
 end

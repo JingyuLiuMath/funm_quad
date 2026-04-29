@@ -1,5 +1,7 @@
 function result = run_single_method(A, b, method_name, basic_param, add_param)
 
+rng(1);
+
 switch method_name
     case "FOM"
         param = basic_param;

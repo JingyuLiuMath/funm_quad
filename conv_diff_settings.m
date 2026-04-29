@@ -1,9 +1,5 @@
-clear all;
-close all;
-maxNumCompThreads(1);
-warning off;
-
-data_prefix = "./data/frac_laplacian_invsqrt/";
+data_prefix = "./data/conv_diff_invsqrt/";
+figure_prefix = "./figure/conv_diff_invsqrt";
 
 method_list = [...
     "FOM", ...
@@ -11,7 +7,7 @@ method_list = [...
     "sFOM_t"
     ];
 
-m = 300;
+m = 200;
 max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
@@ -21,9 +17,9 @@ sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
 
-quad_tol = 1e-7;
-stop_tol = 1e-8;
-max_num_quad_points = 8192;
+quad_tol = 1e-8;
+stop_tol = 1e-6;
+max_num_quad_points = 4096;
 
 check_flag = 0;
 
@@ -46,15 +42,17 @@ fprintf("sketcing_size_control: %d\n", sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
 
 fprintf("data_prefix: %s\n", data_prefix);
+fprintf("figure_prefix: %s\n", figure_prefix);
 
 %% Load matrix.
-load('./data/frac_laplacian/gnutella_comp.mat');
-A = L;
+load('./data/conv_diff/convdiff_matrix.mat');
+load('./data/conv_diff/convdiff_sol.mat');
 N = size(A, 1);
-b = A * b;
-f_ex = ex_gnutella;
+v = ones(N,1);
+b = v/norm(v);
+f_ex = ex_convdiff;
 
-%% choose parameters for the FUNM_QUAD restart algorithm
+%% Choose parameters for the FUNM_QUAD restart algorithm
 addpath('funm_quad')
 basic_param.function = 'invSqrt';
 basic_param.restart_length = m;
@@ -75,12 +73,8 @@ basic_param.truncation_length = inf;
 basic_param.verbose = 1;
 basic_param.check = check_flag;
 
-%% Test methods
-run_methods(data_prefix, ...
-    method_list, ...
-    truncation_length_list, ...
-    basic_param, ...
-    max_num_quad_points, ...
-    sketching_mat_type, sketching_size, ...
-    sketching_size_control, cond_tol, ...
-    A, b);
+%% Print.
+caption_name = "Relative error, time, iteration number and oracle number" + ...
+    " of the invsqrt function" + ...
+    " for the convection-diffusion example";
+label_name = "conv_diff";

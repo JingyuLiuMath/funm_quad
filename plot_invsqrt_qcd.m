@@ -1,17 +1,15 @@
 clear all;
 close all;
 
-truncation_length_list = [2, 1, 0];
-method_list = [...
-    "fix_FOM", ...
-    "fix_sFOM_s", ...
-    "ada_sFOM_t"
-    ];
-
 data_prefix = "./data/qcd_invsqrt/";
 figure_prefix = "./figure/qcd_invsqrt/qcd_invsqrt";
 
-results_list = [];
+method_list = [...
+    "FOM", ...
+    "sFOM_s", ...
+    "sFOM_t"
+    ];
+truncation_length_list = [2, 1, 0];
 
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)
@@ -29,12 +27,13 @@ fprintf("figure_prefix: %s\n", figure_prefix);
 %% Load matrix.
 load("./data/qcd/qcd_matrix_nonhermitian.mat");
 load("./data/qcd/qcd_nonhermitian_exact.mat");
-c = zeros(size(Q,1),1); c(1) = 1;
-b = Q*c; normv = norm(b);
+N = size(Q, 1);
+A = @(v) Q * (Q * v);
+c = zeros(N,1); c(1) = 1;
+b = Q*c; normv = norm(b); b = b/norm(b);
 f_ex = qcd_nonhermitian_exact / normv;
 
 %% Plot results.
 plot_figures(data_prefix, f_ex, ...
     method_list, truncation_length_list, ...
     figure_prefix);
-

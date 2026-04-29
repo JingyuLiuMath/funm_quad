@@ -391,7 +391,7 @@ for k = 1:param.max_restarts,
                     end
                     out.num_quadpoints(k) = N;
                     converged = 1;
-                elseif N < max_num_quad_points
+                elseif N2 < max_num_quad_points
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
