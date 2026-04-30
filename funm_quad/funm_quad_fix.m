@@ -385,13 +385,13 @@ for k = 1:param.max_restarts,
 
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm(h2-h1)/norm(f) < tol
+                if norm(h2-h1)/norm(h2) < tol
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
-                    out.num_quadpoints(k) = N;
+                    out.num_quadpoints(k) = N2;
                     converged = 1;
-                elseif N2 < max_num_quad_points
+                elseif ceil(sqrt(2) * N2) < max_num_quad_points
                     if param.verbose >= 2,
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
@@ -401,7 +401,7 @@ for k = 1:param.max_restarts,
                     if param.verbose >= 2,
                         fprintf("quadrature does not converge but exceed max\n");
                     end
-                    out.num_quadpoints(k) = N;
+                    out.num_quadpoints(k) = N2;
                     converged = 1;
                 end
             end
@@ -439,7 +439,7 @@ for k = 1:param.max_restarts,
     out.time(k) = cputime - out.time(k);
 
     % check stopping condition
-    if  stopcondition(out.update/norm(f) < param.stopping_accuracy) || accuracy_flag % stop by norm of update?
+    if out.update(k)/norm(f) < param.stopping_accuracy % stop by norm of update?
         out.stop_condition = '5 - norm of updates decayed below stopping accuracy';
     end
 

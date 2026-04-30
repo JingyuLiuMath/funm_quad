@@ -1,5 +1,5 @@
-data_prefix = "./data/frac_laplacian/";
-figure_prefix = "./figure/frac_laplacian/frac_laplacian";
+data_prefix = "./data/conv_diff_thick_restart/";
+figure_prefix = "./figure/conv_diff_thick_restart/conv_diff_thick_restart";
 
 method_list = [...
     "FOM", ...
@@ -17,8 +17,8 @@ sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
 
-quad_tol = 1e-9;
-stop_tol = 1e-8;
+quad_tol = 1e-7;
+stop_tol = 1e-6;
 max_num_quad_points = 1024;
 
 check_flag = 0;
@@ -44,13 +44,14 @@ fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
 
 %% Load matrix.
-load('./data/frac_laplacian_data/gnutella_comp.mat');
-A = L;
+load('./data/conv_diff_data/convdiff_matrix.mat');
+load('./data/conv_diff_data/convdiff_sol.mat');
 N = size(A, 1);
-b = A * b;
-f_ex = ex_gnutella;
+v = ones(N,1);
+b = v/norm(v);
+f_ex = ex_convdiff;
 
-%% choose parameters for the FUNM_QUAD restart algorithm
+%% Choose parameters for the FUNM_QUAD restart algorithm
 addpath('funm_quad')
 basic_param.function = 'invSqrt';
 basic_param.restart_length = m;
@@ -74,5 +75,5 @@ basic_param.check = check_flag;
 %% Print.
 caption_name = "Relative error, time, iteration number and oracle number" + ...
     " of the invsqrt function" + ...
-    " for the fractional Laplacian example";
-label_name = "invsqrt_frac_laplacian";
+    " for the convection-diffusion example";
+label_name = "conv_diff";

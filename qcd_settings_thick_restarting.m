@@ -1,5 +1,5 @@
-data_prefix = "./data/frac_laplacian/";
-figure_prefix = "./figure/frac_laplacian/frac_laplacian";
+data_prefix = "./data/qcd_thick_restart/";
+figure_prefix = "./figure/qcd_thick_restart/qcd_thick_restart";
 
 method_list = [...
     "FOM", ...
@@ -44,11 +44,13 @@ fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
 
 %% Load matrix.
-load('./data/frac_laplacian_data/gnutella_comp.mat');
-A = L;
-N = size(A, 1);
-b = A * b;
-f_ex = ex_gnutella;
+load("./data/qcd_data/qcd_matrix_nonhermitian.mat");
+N = size(Q, 1);
+A = @(v) Q * (Q * v);
+load("./data/qcd_data/qcd_nonhermitian_exact.mat");
+c = zeros(N,1); c(1) = 1;
+b = Q*c; normv = norm(b); b = b/norm(b);
+f_ex = qcd_nonhermitian_exact / normv;
 
 %% choose parameters for the FUNM_QUAD restart algorithm
 addpath('funm_quad')
@@ -71,8 +73,8 @@ basic_param.truncation_length = inf;
 basic_param.verbose = 1;
 basic_param.check = check_flag;
 
-%% Print.
+%% Print
 caption_name = "Relative error, time, iteration number and oracle number" + ...
     " of the invsqrt function" + ...
-    " for the fractional Laplacian example";
-label_name = "invsqrt_frac_laplacian";
+    " for the QCD example";
+label_name = "qcd";

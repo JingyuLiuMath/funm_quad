@@ -1,34 +1,10 @@
-clear all;
-close all;
+function plot_figures_thick_restart(data_prefix, f_ex, ...
+    method_list, truncation_length_list, ...
+    figure_prefix)
 
-truncation_length_list = [2, 1, 0];
-method_list = [...
-    "fix_FOM", ...
-    "fix_sFOM_s", ...
-    "ada_sFOM_t"
-    ];
-
-data_prefix = "./data/qcd_invsqrt_thick_restart/";
-figure_prefix = "./figure/qcd_invsqrt_thick_restart/qcd_invsqrt_thick_restart";
-
-results_list_without = [];
+results_list_without= [];
 results_list_with = [];
 
-fprintf("truncation_length: ");
-for it = 1 : length(truncation_length_list)
-    fprintf("%d ", truncation_length_list(it));
-end
-fprintf("\n");
-fprintf("file_prefix: %s\n", data_prefix);
-
-%% Load matrix.
-load("./data/qcd/qcd_matrix_nonhermitian.mat");
-load("./data/qcd/qcd_nonhermitian_exact.mat");
-c = zeros(size(Q,1),1); c(1) = 1;
-b = Q*c; normv = norm(b);
-f_ex = qcd_nonhermitian_exact / normv;
-
-%% print methods.
 num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
@@ -52,6 +28,8 @@ end
 
 plot_result(results_list_without, results_list_with, f_ex, figure_prefix);
 
+end
+
 function plot_result(results_list_without, results_list_with, f_ex, figure_prefix)
 
 num_result = length(results_list_without);
@@ -65,30 +43,31 @@ for it = 1 : num_result
     curr_result_with = results_list_with(it);
     save_name = curr_result_without.save_name;
     display_name = replace(save_name, "_", "-");
+    display_name = regexp(display_name, '^[^(]*', 'match', 'once');
 
     err_without = vecnorm(f_ex - curr_result_without.out.appr) / norm(f_ex);
     err_with = vecnorm(f_ex - curr_result_with.out.appr) / norm(f_ex);
 
-    semilogy(err_without, 'g--+');
+    semilogy(cumsum(curr_result_without.num_oracle), err_without, 'g--+');
     hold on;
-    semilogy(err_with, 'm--+');
+    semilogy(cumsum(curr_result_with.num_oracle), err_with, 'm--+');
 
-    if length(err_without) <= 10 &&  length(err_with) <= 10
-        for k = 2 : length(err_without)
-            text(k + 0.1, 2 * err_without(k), num2str(curr_result_without.out.num_quadpoints(k)), ...
-                'Color', [0 1 0], 'FontSize', 16, 'Rotation', 45);
-        end
-
-        for k = 2 : length(err_with)
-            text(k + 0.1, 2 * err_with(k), num2str(curr_result_with.out.num_quadpoints(k)), ...
-                'Color', [1 0 1], 'FontSize', 16, 'Rotation', 45);
-        end
-    end
+    % if length(err_without) <= 10 &&  length(err_with) <= 10
+    %     for k = 2 : length(err_without)
+    %         text(k + 0.1, 2 * err_without(k), num2str(curr_result_without.out.num_quadpoints(k)), ...
+    %             'Color', [0 1 0], 'FontSize', 16, 'Rotation', 45);
+    %     end
+    % 
+    %     for k = 2 : length(err_with)
+    %         text(k + 0.1, 2 * err_with(k), num2str(curr_result_with.out.num_quadpoints(k)), ...
+    %             'Color', [1 0 1], 'FontSize', 16, 'Rotation', 45);
+    %     end
+    % end
     display_name_without = "without thick restart (" + num2str(curr_result_without.time) + ")";
     display_name_with = "with thick restart (" + num2str(curr_result_with.time) + ")";
     legend(display_name_without, display_name_with);
-    xlabel('cycle');
-    ylabel('rel err');
+    xlabel('number of matrix-vector products');
+    ylabel('rel error');
     title(display_name);
     hold off;
     saveas(gcf, figure_prefix + "_" + save_name + "_rel_err.eps", "epsc")

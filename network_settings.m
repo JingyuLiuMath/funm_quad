@@ -1,5 +1,5 @@
-data_prefix = "./data/network_exp/";
-figure_prefix = "./figure/network_exp";
+data_prefix = "./data/network/";
+figure_prefix = "./figure/network/network";
 
 method_list = [...
     "FOM", ...
@@ -7,19 +7,19 @@ method_list = [...
     "sFOM_t"
     ];
 
-m = 50;
+m = 20;
 max_restarts = 300;
 
-truncation_length_list = [4, 3, 2, 1, 0];
+truncation_length_list = [2, 1, 0];
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
 
-quad_tol = 1e-8;
-stop_tol = 1e-6;
-max_num_quad_points = 4096;
+quad_tol = 1e-9;
+stop_tol = 1e-7;
+max_num_quad_points = 1024;
 
 check_flag = 0;
 
@@ -28,7 +28,6 @@ fprintf("stop_tol: %.1e\n", stop_tol);
 
 fprintf("m: %d\n", m);
 fprintf("max_restarts: %d\n", max_restarts);
-fprintf("ada_max_restarts: %d\n", max_restarts);
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)
     fprintf("%d ", truncation_length_list(it));
@@ -45,8 +44,8 @@ fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
 
 %% Load matrix.
-load('./data/network/wiki-Vote.mat');
-load('./data/network/wiki-Vote-comp.mat');
+load('./data/network_data/wiki-Vote.mat');
+load('./data/network_data/wiki-Vote-comp.mat');
 
 A = -Problem.A; ee = -ee; N = size(A,1); 
 b = ones(N,1);

@@ -1,5 +1,5 @@
-data_prefix = "./data/conv_diff_invsqrt/";
-figure_prefix = "./figure/conv_diff_invsqrt";
+data_prefix = "./data/conv_diff/";
+figure_prefix = "./figure/conv_diff/conv_diff";
 
 method_list = [...
     "FOM", ...
@@ -7,19 +7,19 @@ method_list = [...
     "sFOM_t"
     ];
 
-m = 200;
+m = 100;
 max_restarts = 300;
 
-truncation_length_list = [2, 1, 0];
+truncation_length_list = [4, 3, 2, 1, 0];
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
 
-quad_tol = 1e-8;
+quad_tol = 1e-7;
 stop_tol = 1e-6;
-max_num_quad_points = 4096;
+max_num_quad_points = 1024;
 
 check_flag = 0;
 
@@ -28,7 +28,6 @@ fprintf("stop_tol: %.1e\n", stop_tol);
 
 fprintf("m: %d\n", m);
 fprintf("max_restarts: %d\n", max_restarts);
-fprintf("ada_max_restarts: %d\n", max_restarts);
 fprintf("truncation_length: ");
 for it = 1 : length(truncation_length_list)
     fprintf("%d ", truncation_length_list(it));
@@ -45,8 +44,8 @@ fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
 
 %% Load matrix.
-load('./data/conv_diff/convdiff_matrix.mat');
-load('./data/conv_diff/convdiff_sol.mat');
+load('./data/conv_diff_data/convdiff_matrix.mat');
+load('./data/conv_diff_data/convdiff_sol.mat');
 N = size(A, 1);
 v = ones(N,1);
 b = v/norm(v);

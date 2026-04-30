@@ -1,5 +1,5 @@
-data_prefix = "./data/frac_laplacian/";
-figure_prefix = "./figure/frac_laplacian/frac_laplacian";
+data_prefix = "./data/frac_laplacian_thick_restart/";
+figure_prefix = "./figure/frac_laplacian_thick_restart/frac_laplacian_thick_restart";
 
 method_list = [...
     "FOM", ...
