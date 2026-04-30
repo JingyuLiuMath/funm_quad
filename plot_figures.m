@@ -42,14 +42,18 @@ for it = 1 : num_result
         '--', ...
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
+        "LineWidth", 2, ...
         "DisplayName", display_name);
     hold on;
 end
 legend("location", "southeastoutside");
 xlabel('number of matrix-vector products');
-ylabel('rel error');
+ylabel('relative error');
+set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_rel_err.eps";
 saveas(gcf, file_name, "epsc");
+file_name = figure_prefix + "_rel_err.png";
+saveas(gcf, file_name, "png");
 
 figure();
 for it = 1 : num_result
@@ -60,14 +64,18 @@ for it = 1 : num_result
         '--', ...
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
+        "LineWidth", 2, ...
         "DisplayName", display_name);
     hold on;
 end
 legend("location", "southeastoutside");
 xlabel('iteration');
 ylabel('update norm');
+set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_norm_update.eps";
 saveas(gcf, file_name, "epsc");
+file_name = figure_prefix + "_norm_update.png";
+saveas(gcf, file_name, "png");
 
 figure();
 for it = 1 : num_result
@@ -78,14 +86,18 @@ for it = 1 : num_result
         '--', ...
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
+        "LineWidth", 2, ...
         "DisplayName", display_name);
     hold on;
 end
 legend("location", "southeastoutside");
 xlabel('iteration');
 ylabel('num of quad points');
+set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_num_quad.eps";
 saveas(gcf, file_name, "epsc");
+file_name = figure_prefix + "_num_quad.png";
+saveas(gcf, file_name, "png");
 
 figure();
 for it = 1 : num_result
@@ -96,13 +108,17 @@ for it = 1 : num_result
             '--', ...
             "Color", color_list(it, :), ...
             "Marker", marker_list(it, :), ...
+            "LineWidth", 2, ...
             "DisplayName", display_name);
         hold on;
 end
 legend("location", "southeastoutside");
 xlabel('iteration');
 ylabel('subspace dim');
+set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_subspace_dim.eps";
 saveas(gcf, file_name, "epsc");
+file_name = figure_prefix + "_subspace_dim.png";
+saveas(gcf, file_name, "png");
 
 end

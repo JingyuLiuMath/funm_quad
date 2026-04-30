@@ -1,4 +1,4 @@
-function [ m,w,H,h,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S, A, m_old, H, start_ind, param)
+function [ m,w,H,h,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S, A, m_max, H, start_ind, param)
 
 accuracy_flag = 0;
 fm = 0;
@@ -16,21 +16,18 @@ if param.max_restarts == 1
 end
 
 global V_big;
-H(m_old + 1, m_old) = 0;
+H(m_max + 1, m_max) = 0;
 trunc = param.truncation_length;
 reo = param.reorth_number;
 cond_tol = param.cond_tol;
 breakdown = 0;
 
+examine_period = ceil(m_max / 10);
 s0 = 30;
- n = size(V_big, 1);
-m_max = param.restart_length;
+n = size(V_big, 1);
 if isempty(S)
-    if param.sketching_mat_type == "exact"
-        S = sketching_mat(n, n, param.sketching_mat_type);
-    else
-        S = sketching_mat(s0, n, param.sketching_mat_type);
-    end
+    S = sketching_mat(s0, n, param.sketching_mat_type);
+    examine_period = 1;
 end
 s = size(S, 1);
 
@@ -75,10 +72,15 @@ for j = start_ind : m_max
                 S_incr * V_big(:, 1 : (j + 1))];
             Sw = SV_big(:, j + 1);
             s = s + s0;
+            if param.verbose >= 2
+                fprintf("sketching size increased to %d\n", s);
+            end
         end
 
-        if cond(SV_big(:, 1 : (j + 1))) > cond_tol
-            break;
+        if mod(num_oracle, examine_period) == 0
+            if cond(SV_big(:, 1 : (j + 1))) > cond_tol
+                break;
+            end
         end
     end
 

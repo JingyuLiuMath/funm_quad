@@ -3,8 +3,8 @@
 #SBATCH --job-name=qcd_thick_restart
 #SBATCH --output=qcd_thick_restart_%j.out
 #SBATCH --error=qcd_thick_restart_%j.err
-#SBATCH --nodelist=bigMem0
-#SBATCH --exclusive
+#SBATCH --nodelist=bigMem1
+#SBATCH --cpus-per-task=16
 
 module unload MATLAB
 module load MATLAB/R2023b

@@ -48,9 +48,17 @@ for it = 1 : num_result
     err_without = vecnorm(f_ex - curr_result_without.out.appr) / norm(f_ex);
     err_with = vecnorm(f_ex - curr_result_with.out.appr) / norm(f_ex);
 
-    semilogy(cumsum(curr_result_without.num_oracle), err_without, 'g--+');
+    semilogy(cumsum(curr_result_without.num_oracle), err_without, ...
+        "LineWidth", 2, ...
+        "LineStyle", "--", ...
+        "Marker", "+", ...
+        'Color', "g");
     hold on;
-    semilogy(cumsum(curr_result_with.num_oracle), err_with, 'm--+');
+    semilogy(cumsum(curr_result_with.num_oracle), err_with, ...
+        "LineWidth", 2, ...
+        "LineStyle", "--", ...
+        "Marker", "x", ...
+        'Color', "m");
 
     % if length(err_without) <= 10 &&  length(err_with) <= 10
     %     for k = 2 : length(err_without)
@@ -69,8 +77,10 @@ for it = 1 : num_result
     xlabel('number of matrix-vector products');
     ylabel('rel error');
     title(display_name);
+    set(gca, 'FontSize', 18);
     hold off;
-    saveas(gcf, figure_prefix + "_" + save_name + "_rel_err.eps", "epsc")
+    saveas(gcf, figure_prefix + "_" + display_name + "_rel_err.eps", "epsc")
+    saveas(gcf, figure_prefix + "_" + display_name + "_rel_err.png", "png");
 end
 
 end

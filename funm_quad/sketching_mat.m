@@ -8,7 +8,6 @@ switch sketching
     case "sparse sign"
         S = sparse_sign(s, N);
     case "exact"
-        assert(s == N, "s must be equal to N!");
         S = speye(N);
 end
 

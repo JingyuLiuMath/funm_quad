@@ -7,10 +7,10 @@ method_list = [...
     "sFOM_t"
     ];
 
-m = 100;
+m = 150;
 max_restarts = 300;
 
-truncation_length_list = [4, 3, 2, 1, 0];
+truncation_length_list = [2, 1, 0];
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
@@ -18,7 +18,7 @@ sketching_size_control = 2;
 cond_tol = 1e4;
 
 quad_tol = 1e-7;
-stop_tol = 1e-6;
+stop_tol = 1e-9;
 max_num_quad_points = 1024;
 
 check_flag = 0;

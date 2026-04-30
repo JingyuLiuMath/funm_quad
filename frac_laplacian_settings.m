@@ -10,7 +10,7 @@ method_list = [...
 m = 100;
 max_restarts = 300;
 
-truncation_length_list = [4, 3, 2, 1, 0];
+truncation_length_list = [2, 1, 0];
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;

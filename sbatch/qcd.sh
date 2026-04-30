@@ -3,8 +3,8 @@
 #SBATCH --job-name=qcd
 #SBATCH --output=qcd_%j.out
 #SBATCH --error=qcd_%j.err
-#SBATCH --nodelist=bigMem0
-#SBATCH --exclusive
+#SBATCH --nodelist=bigMem1
+#SBATCH --cpus-per-task=16
 
 module unload MATLAB
 module load MATLAB/R2023b

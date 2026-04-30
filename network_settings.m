@@ -7,7 +7,7 @@ method_list = [...
     "sFOM_t"
     ];
 
-m = 20;
+m = 15;
 max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
@@ -17,8 +17,8 @@ sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
 
-quad_tol = 1e-9;
-stop_tol = 1e-7;
+quad_tol = 1e-7;
+stop_tol = 1e-10;
 max_num_quad_points = 1024;
 
 check_flag = 0;
@@ -37,7 +37,7 @@ fprintf("max_num_quad_points: %d\n", max_num_quad_points);
 
 fprintf("sketching_mat_type: %s\n", sketching_mat_type);
 fprintf("sketching_size: %d\n", sketching_size);
-fprintf("sketcing_size_control: %d\n", sketching_size_control);
+fprintf("sketching_size_control: %d\n", sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
 
 fprintf("data_prefix: %s\n", data_prefix);

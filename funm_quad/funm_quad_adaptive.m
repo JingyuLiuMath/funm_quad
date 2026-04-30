@@ -129,6 +129,9 @@ for k = 1:param.max_restarts,
             [ m,v,H,eta,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S, A,m_max,H,ell+1,param );
             out.num_oracle(k) = num_oracle;
         end
+        if k == 1
+            m_max = m;
+        end
         beta = v_value / V_big(tmp_ind, ell + 1);  % b = v_1 * beta
         beta_acc = beta_acc * beta;
         m = m - ell;

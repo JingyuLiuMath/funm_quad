@@ -3,8 +3,8 @@
 #SBATCH --job-name=conv_diff
 #SBATCH --output=conv_diff_%j.out
 #SBATCH --error=conv_diff_%j.err
-#SBATCH --nodelist=bigMem0
-#SBATCH --exclusive
+#SBATCH --nodelist=bigMem1
+#SBATCH --cpus-per-task=16
 
 module unload MATLAB
 module load MATLAB/R2023b
