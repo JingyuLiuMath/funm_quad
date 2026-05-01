@@ -7,7 +7,7 @@ method_list = [...
     "adaFOM_t"
     ];
 
-m = 150;
+m = 200;
 max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
@@ -18,7 +18,7 @@ sketching_size_control = 2;
 cond_tol = 1e4;
 
 quad_tol = 1e-9;
-stop_tol = 1e-7;
+stop_tol = 1e-11;
 max_num_quad_points = 1024;
 
 number_thick = 5;

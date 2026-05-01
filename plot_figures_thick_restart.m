@@ -47,7 +47,7 @@ for it = 1 : num_result
     curr_result_with = results_list_with(it);
     save_name = curr_result_without.save_name;
     display_name = replace(save_name, "_", "-");
-
+    fprintf("method: %s\n", display_name);
     err_without = vecnorm(f_ex - curr_result_without.out.appr) / norm(f_ex);
     err_with = vecnorm(f_ex - curr_result_with.out.appr) / norm(f_ex);
 
@@ -57,6 +57,8 @@ for it = 1 : num_result
         "Marker", "+", ...
         'Color', "g", ...
         "MarkerSize", 10);
+    total_oracle_without = sum(curr_result_without.num_oracle);
+    fprintf("number of oracle calls without thick restart: %d\n", total_oracle_without);
     hold on;
     semilogy(cumsum(curr_result_with.num_oracle), err_with, ...
         "LineWidth", 2, ...
@@ -64,6 +66,10 @@ for it = 1 : num_result
         "Marker", "x", ...
         'Color', "m", ...
         "MarkerSize", 10);
+    total_oracle_with = sum(curr_result_with.num_oracle);
+    fprintf("number of oracle calls with thick restart: %d\n", total_oracle_with);
+    reduced_ratio = (total_oracle_without - total_oracle_with) / total_oracle_without;
+    fprintf("reduced ratio: %.2f%%\n", reduced_ratio * 100);
 
     % if length(err_without) <= 10 &&  length(err_with) <= 10
     %     for k = 2 : length(err_without)
