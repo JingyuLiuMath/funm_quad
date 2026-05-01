@@ -5,7 +5,8 @@ function run_methods_thick_restart(data_prefix, ...
     max_num_quad_points, ...
     sketching_mat_type, sketching_size, ...
     sketching_size_control, cond_tol, ...
-    A, b)
+    A, b, ...
+    number_thick)
 
 num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
@@ -25,19 +26,19 @@ for it_method = 1 : num_method
                 sketching_mat_type, sketching_size, ...
                 sketching_size_control, cond_tol);
 
-            result_without_thick_restart = run_single_method(A, b, method_name, basic_param, add_param);
-            save_name_without = save_name + " (without thick restarting)";
-            result_without_thick_restart.save_name = save_name_without;
+            % result_without_thick_restart = run_single_method(A, b, method_name, basic_param, add_param);
+            % save_name_without = save_name + " (without thick restarting)";
+            % result_without_thick_restart.save_name = save_name_without;
 
             thick_param = basic_param;
             thick_param.thick = @thick_quad;
-            thick_param.number_thick = 5;
+            thick_param.number_thick = number_thick;
 
             result_with_thick_restart = run_single_method(A, b, method_name, thick_param, add_param);
-            save_name_with = save_name + " (with thick restarting)";
+            save_name_with = save_name;
             result_with_thick_restart.save_name = save_name_with;
 
-            save(data_prefix + save_name  + ".mat", "result_without_thick_restart", "result_with_thick_restart");
+            save(data_prefix + save_name + "_thick_restart" + ".mat", "result_with_thick_restart");
         end
     else
         truncation_length = inf;
@@ -52,19 +53,19 @@ for it_method = 1 : num_method
             sketching_mat_type, sketching_size, ...
             sketching_size_control, cond_tol);
 
-        result_without_thick_restart = run_single_method(A, b, method_name, basic_param, add_param);
-        save_name_without = save_name + " (without thick restarting)";
-        result_without_thick_restart.save_name = save_name_without;
+        % result_without_thick_restart = run_single_method(A, b, method_name, basic_param, add_param);
+        % save_name_without = save_name + " (without thick restarting)";
+        % result_without_thick_restart.save_name = save_name_without;
 
         thick_param = basic_param;
         thick_param.thick = @thick_quad;
-        thick_param.number_thick = 5;
+        thick_param.number_thick = number_thick;
 
         result_with_thick_restart = run_single_method(A, b, method_name, thick_param, add_param);
         save_name_with = save_name + " (with thick restarting)";
         result_with_thick_restart.save_name = save_name_with;
 
-        save(data_prefix + save_name  + ".mat", "result_without_thick_restart", "result_with_thick_restart");
+        save(data_prefix + save_name + "_thick_restart" + ".mat", "result_with_thick_restart");
     end
 end
 

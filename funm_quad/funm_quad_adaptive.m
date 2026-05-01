@@ -126,7 +126,7 @@ for k = 1:param.max_restarts,
             % out.num_oracle(k) = num_oracle;
         else
             V_big(:, ell+1) = v;
-            [ m,v,H,eta,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S, A,m_max,H,ell+1,param );
+            [ m,v,H,eta,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S,A,m_max,H,ell+1,param );
             out.num_oracle(k) = num_oracle;
         end
         if k == 1

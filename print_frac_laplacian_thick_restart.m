@@ -1,9 +1,0 @@
-clear all;
-close all;
-
-frac_laplacian_settings_thick_restarting;
-
-print_table_thick_restart(data_prefix, f_ex, ...
-    method_list, ...
-    truncation_length_list, ...
-    caption_name, label_name)

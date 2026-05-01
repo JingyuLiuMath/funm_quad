@@ -2,12 +2,10 @@ data_prefix = "./data/qcd/";
 figure_prefix = "./figure/qcd/qcd";
 
 method_list = [...
-    "FOM", ...
-    "sFOM_s", ...
-    "sFOM_t"
+    "adaFOM_t"
     ];
 
-m = 100;
+m = 300;
 max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
@@ -18,8 +16,10 @@ sketching_size_control = 2;
 cond_tol = 1e4;
 
 quad_tol = 1e-7;
-stop_tol = 1e-8;
+stop_tol = 1e-14;
 max_num_quad_points = 1024;
+
+number_thick = 5;
 
 check_flag = 0;
 
@@ -39,6 +39,8 @@ fprintf("sketching_mat_type: %s\n", sketching_mat_type);
 fprintf("sketching_size: %d\n", sketching_size);
 fprintf("sketcing_size_control: %d\n", sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
+
+fprintf("number_thick: %d\n", number_thick);
 
 fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
@@ -74,7 +76,7 @@ basic_param.verbose = 1;
 basic_param.check = check_flag;
 
 %% Print
-caption_name = "Relative error, time, iteration number and oracle number" + ...
+caption_name = "Relative error, time, iteration number and matrix-vector product number" + ...
     " of the invsqrt function" + ...
-    " for the QCD example";
+    " for the QCD example.";
 label_name = "qcd";

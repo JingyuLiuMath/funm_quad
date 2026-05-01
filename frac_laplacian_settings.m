@@ -4,7 +4,7 @@ figure_prefix = "./figure/frac_laplacian/frac_laplacian";
 method_list = [...
     "FOM", ...
     "sFOM_s", ...
-    "sFOM_t"
+    "adaFOM_t"
     ];
 
 m = 100;
@@ -20,6 +20,8 @@ cond_tol = 1e4;
 quad_tol = 1e-9;
 stop_tol = 1e-8;
 max_num_quad_points = 1024;
+
+number_thick = 5;
 
 check_flag = 0;
 
@@ -39,6 +41,8 @@ fprintf("sketching_mat_type: %s\n", sketching_mat_type);
 fprintf("sketching_size: %d\n", sketching_size);
 fprintf("sketcing_size_control: %d\n", sketching_size_control);
 fprintf("cond_tol: %.1e\n", cond_tol);
+
+fprintf("number_thick: %d\n", number_thick);
 
 fprintf("data_prefix: %s\n", data_prefix);
 fprintf("figure_prefix: %s\n", figure_prefix);
@@ -74,5 +78,5 @@ basic_param.check = check_flag;
 %% Print.
 caption_name = "Relative error, time, iteration number and oracle number" + ...
     " of the invsqrt function" + ...
-    " for the fractional Laplacian example";
+    " for the fractional Laplacian example.";
 label_name = "invsqrt_frac_laplacian";

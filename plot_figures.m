@@ -12,12 +12,14 @@ for it_method = 1 : num_method
             truncation_length = truncation_length_list(it_trunc);
             save_name = method_name + "_" + string(truncation_length);
             load(data_prefix + save_name  + ".mat");
+            result.save_name = method_name + " (t = " + string(truncation_length) + ")";
             results_list = [results_list; result];
         end
     else
         truncation_length = inf;
         save_name = method_name;
         load(data_prefix + save_name  + ".mat");
+        result.save_name = method_name;
         results_list = [results_list; result];
     end
 end
@@ -43,10 +45,11 @@ for it = 1 : num_result
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
         "LineWidth", 2, ...
+        "MarkerSize", 10, ...
         "DisplayName", display_name);
     hold on;
 end
-legend("location", "southeastoutside");
+legend("location", "northeast");
 xlabel('number of matrix-vector products');
 ylabel('relative error');
 set(gca, 'FontSize', 18);
@@ -65,10 +68,11 @@ for it = 1 : num_result
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
         "LineWidth", 2, ...
+        "MarkerSize", 10, ...
         "DisplayName", display_name);
     hold on;
 end
-legend("location", "southeastoutside");
+legend("location", "northeast");
 xlabel('iteration');
 ylabel('update norm');
 set(gca, 'FontSize', 18);
@@ -87,10 +91,11 @@ for it = 1 : num_result
         "Color", color_list(it, :), ...
         "Marker", marker_list(it, :), ...
         "LineWidth", 2, ...
+        "MarkerSize", 10, ...
         "DisplayName", display_name);
     hold on;
 end
-legend("location", "southeastoutside");
+legend("location", "northeast");
 xlabel('iteration');
 ylabel('num of quad points');
 set(gca, 'FontSize', 18);
@@ -103,16 +108,17 @@ figure();
 for it = 1 : num_result
     curr_result = results_list(it);
     display_name = replace(curr_result.save_name, "_", "-");
-    
+    fprintf("method: %s, subspace dim: %d\n", display_name, round(mean(curr_result.out.dim)));
     plot(curr_result.out.dim, ...
             '--', ...
             "Color", color_list(it, :), ...
             "Marker", marker_list(it, :), ...
             "LineWidth", 2, ...
+            "MarkerSize", 10, ...
             "DisplayName", display_name);
         hold on;
 end
-legend("location", "southeastoutside");
+legend("location", "northeast");
 xlabel('iteration');
 ylabel('subspace dim');
 set(gca, 'FontSize', 18);

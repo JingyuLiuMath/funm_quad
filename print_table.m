@@ -10,7 +10,7 @@ fprintf("\\caption{%s}\n", caption_name);
 fprintf("\\label{tab:%s}\n", label_name);
 fprintf("\\begin{tabular}{ccccc}\n")
 fprintf("\\toprule\n")
-fprintf("Method & error & time & iter number & oracle number \\\\ \n")
+fprintf("method & error & time (s) & no. iter & no. mat-vec \\\\ \n")
 num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
@@ -19,14 +19,16 @@ for it_method = 1 : num_method
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);
             save_name = method_name + "_" + string(truncation_length);
+            print_name = method_name + " (t = " + string(truncation_length) + ")";
             load(data_prefix + save_name  + ".mat");
-            print_result(save_name, result, f_ex);
+            print_result(print_name, result, f_ex);
         end
     else
         truncation_length = inf;
         save_name = method_name;
+        print_name = save_name;
         load(data_prefix + save_name  + ".mat");
-        print_result(save_name, result, f_ex);
+        print_result(print_name, result, f_ex);
     end
 end
 fprintf("\\bottomrule\n");

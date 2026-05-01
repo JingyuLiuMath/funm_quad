@@ -2,7 +2,7 @@ function plot_figures_thick_restart(data_prefix, f_ex, ...
     method_list, truncation_length_list, ...
     figure_prefix)
 
-results_list_without= [];
+results_list_without = [];
 results_list_with = [];
 
 num_truncate_len = length(truncation_length_list);
@@ -14,14 +14,18 @@ for it_method = 1 : num_method
             truncation_length = truncation_length_list(it_trunc);
             save_name = method_name + "_" + string(truncation_length);
             load(data_prefix + save_name  + ".mat");
-            results_list_without = [results_list_without; result_without_thick_restart];
+            results_list_without = [results_list_without; result];
+            save_name_thick_restart = save_name + "_thick_restart";
+            load(data_prefix + save_name_thick_restart  + ".mat");
             results_list_with = [results_list_with; result_with_thick_restart];
         end
     else
         truncation_length = inf;
         save_name = method_name;
         load(data_prefix + save_name  + ".mat");
-        results_list_without = [results_list_without; result_without_thick_restart];
+        results_list_without = [results_list_without; result];
+        save_name_thick_restart = save_name + "_thick_restart";
+        load(data_prefix + save_name_thick_restart  + ".mat");
         results_list_with = [results_list_with; result_with_thick_restart];
     end
 end
@@ -43,7 +47,6 @@ for it = 1 : num_result
     curr_result_with = results_list_with(it);
     save_name = curr_result_without.save_name;
     display_name = replace(save_name, "_", "-");
-    display_name = regexp(display_name, '^[^(]*', 'match', 'once');
 
     err_without = vecnorm(f_ex - curr_result_without.out.appr) / norm(f_ex);
     err_with = vecnorm(f_ex - curr_result_with.out.appr) / norm(f_ex);
@@ -52,13 +55,15 @@ for it = 1 : num_result
         "LineWidth", 2, ...
         "LineStyle", "--", ...
         "Marker", "+", ...
-        'Color', "g");
+        'Color', "g", ...
+        "MarkerSize", 10);
     hold on;
     semilogy(cumsum(curr_result_with.num_oracle), err_with, ...
         "LineWidth", 2, ...
         "LineStyle", "--", ...
         "Marker", "x", ...
-        'Color', "m");
+        'Color', "m", ...
+        "MarkerSize", 10);
 
     % if length(err_without) <= 10 &&  length(err_with) <= 10
     %     for k = 2 : length(err_without)
@@ -79,8 +84,8 @@ for it = 1 : num_result
     title(display_name);
     set(gca, 'FontSize', 18);
     hold off;
-    saveas(gcf, figure_prefix + "_" + display_name + "_rel_err.eps", "epsc")
-    saveas(gcf, figure_prefix + "_" + display_name + "_rel_err.png", "png");
+    saveas(gcf, figure_prefix + "_" + display_name + "_thick_restart_rel_err.eps", "epsc")
+    saveas(gcf, figure_prefix + "_" + display_name + "_thick_restart_rel_err.png", "png");
 end
 
 end
