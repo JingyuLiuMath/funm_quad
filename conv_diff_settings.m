@@ -19,7 +19,7 @@ cond_tol = 1e4;
 
 quad_tol = 1e-9;
 stop_tol = 1e-7;
-max_num_quad_points = 1024;
+max_num_quad_points = 512;
 
 number_thick = 5;
 

@@ -59,6 +59,7 @@ for it = 1 : num_result
         "MarkerSize", 10);
     total_oracle_without = sum(curr_result_without.num_oracle);
     fprintf("number of oracle calls without thick restart: %d\n", total_oracle_without);
+    fprintf("final relative error without thick restart: %.2e\n", err_without(end));
     hold on;
     semilogy(cumsum(curr_result_with.num_oracle), err_with, ...
         "LineWidth", 2, ...
@@ -68,6 +69,7 @@ for it = 1 : num_result
         "MarkerSize", 10);
     total_oracle_with = sum(curr_result_with.num_oracle);
     fprintf("number of oracle calls with thick restart: %d\n", total_oracle_with);
+    fprintf("final relative error with thick restart: %.2e\n", err_with(end));
     reduced_ratio = (total_oracle_without - total_oracle_with) / total_oracle_without;
     fprintf("reduced ratio: %.2f%%\n", reduced_ratio * 100);
 
