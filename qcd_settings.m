@@ -2,10 +2,12 @@ data_prefix = "./data/qcd/";
 figure_prefix = "./figure/qcd/qcd";
 
 method_list = [...
+    "FOM", ...
+    "sFOM_s", ...
     "adaFOM_t"
     ];
 
-m = 300;
+m = 150;
 max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
@@ -15,8 +17,8 @@ sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
 
-quad_tol = 1e-7;
-stop_tol = 1e-14;
+quad_tol = 1e-9;
+stop_tol = 1e-7;
 max_num_quad_points = 1024;
 
 number_thick = 5;
@@ -64,7 +66,7 @@ basic_param.transformation_parameter = 1;
 basic_param.hermitian = 0;
 basic_param.V_full = 0;
 basic_param.H_full = 0;
-basic_param.exact = [];
+basic_param.exact = f_ex;
 basic_param.stopping_accuracy = stop_tol;
 basic_param.inner_product = @(a,b) b'*a;
 basic_param.thick = [];
