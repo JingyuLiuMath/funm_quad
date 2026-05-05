@@ -8,9 +8,9 @@ fprintf("\\begin{table}[tbhp]\n")
 fprintf("\\centering\n")
 fprintf("\\caption{%s}\n", caption_name);
 fprintf("\\label{tab:%s}\n", label_name);
-fprintf("\\begin{tabular}{ccccc}\n")
+fprintf("\\begin{tabular}{cccccc}\n")
 fprintf("\\toprule\n")
-fprintf("method & error & time (s) & no. iter & no. mat-vec \\\\ \n")
+fprintf("method & error & time (s) & no. iter & no. mat-vec & max. no. vecs\\\\ \n")
 num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
@@ -48,6 +48,7 @@ fprintf("& %.1e ", rel_err);
 fprintf("& %.1e ", result.time);
 fprintf("& %d ", result.num_it);
 fprintf("& %d ", sum(result.num_oracle));
+fprintf("& %d ", max(result.out.dim));
 fprintf("\\\\ \n");
 
 end
