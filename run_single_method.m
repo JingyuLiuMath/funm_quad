@@ -31,7 +31,7 @@ switch method_name
         param.sketching_size_control = add_param.sketching_size_control;
         param.cond_tol = add_param.cond_tol;
         param.sarnoldi = 0;
-        param.update = "last_orth";
+        param.update = "last_sorth";
 
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
