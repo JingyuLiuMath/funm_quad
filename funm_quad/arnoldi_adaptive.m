@@ -30,8 +30,16 @@ if isempty(S)
     examine_period = 1;
 end
 s = size(S, 1);
-
 SV_big = S * V_big(:, 1 : start_ind);
+
+
+AV_big = zeros(n, m_max);
+if isnumeric(A)
+    AV_big(:, 1 : (start_ind - 1)) = A * V_big(:, 1 : (start_ind - 1));
+else
+    AV_big(:, 1 : (start_ind - 1)) = A(V_big(:, 1 : (start_ind - 1)));
+end
+
 num_oracle = 0;
 for j = start_ind : m_max
 
@@ -42,6 +50,7 @@ for j = start_ind : m_max
         w = A(w);
     end
     num_oracle = num_oracle + 1;
+    AV_big(:, j) = w;
 
     i_start = max([1,j-trunc+1]);
     for r = 0:reo
@@ -112,6 +121,7 @@ end
 
 m = j;
 SV_big = SV_big(:, 1 : m);
+AV_big = AV_big(:, 1 : m);
 h = H(m+1, m);
 H = H(1 : m, 1 : m);
 if ~isempty(param.update)
@@ -159,6 +169,56 @@ if ~isempty(param.update)
             if param.check == 1
                 rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
                 rel_orth_err = check_last_sorth(V_big(:, 1 : m), w, S);
+                cond_V = check_cond_V(V_big(:, 1 : m));
+
+                fprintf("after update:\n")
+                fprintf("  rel_err_AD: %.1e\n", rel_err_AD);
+                fprintf("  rel_orth_err: %.1e\n", rel_orth_err);
+                fprintf("  cond_V: %.1e\n", cond_V);
+            end
+        case "last_hm_orth"
+            if param.check == 1
+                rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                rel_orth_err = check_last_orth(AV_big, w);
+                cond_V = check_cond_V(V_big(:, 1 : m));
+
+                fprintf("before update:\n")
+                fprintf("  rel_err_AD: %.1e\n", rel_err_AD);
+                fprintf("  rel_orth_err: %.1e\n", rel_orth_err);
+                fprintf("  cond_V: %.1e\n", cond_V);
+            end
+
+            % [w, H, h] = arnoldi_last_hm_orth_update(m, w, H, h, AV_big);
+            [w, H, h] = arnoldi_last_hm_orth_update(m, w, H, h, AV_big);
+
+            if param.check == 1
+                rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                rel_orth_err = check_last_orth(AV_big, w);
+                cond_V = check_cond_V(V_big(:, 1 : m));
+
+                fprintf("after update:\n")
+                fprintf("  rel_err_AD: %.1e\n", rel_err_AD);
+                fprintf("  rel_orth_err: %.1e\n", rel_orth_err);
+                fprintf("  cond_V: %.1e\n", cond_V);
+            end
+        case "last_hm_sorth"
+            if param.check == 1
+                rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                rel_orth_err = check_last_sorth(AV_big, w, S);
+                cond_V = check_cond_V(V_big(:, 1 : m));
+
+                fprintf("before update:\n")
+                fprintf("  rel_err_AD: %.1e\n", rel_err_AD);
+                fprintf("  rel_orth_err: %.1e\n", rel_orth_err);
+                fprintf("  cond_V: %.1e\n", cond_V);
+            end
+
+            SAV_big = S * AV_big;
+            [w, H, h] = arnoldi_last_hm_sorth_update(m, w, H, h, SV_big, SAV_big, Sw);
+
+            if param.check == 1
+                rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), w, H, h, A);
+                rel_orth_err = check_last_sorth(AV_big, w, S);
                 cond_V = check_cond_V(V_big(:, 1 : m));
 
                 fprintf("after update:\n")

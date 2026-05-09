@@ -36,6 +36,32 @@ switch method_name
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
         t = toc;
+    case "adaFOM_hm_t"
+        param = basic_param;
+        param.truncation_length = add_param.truncation_length;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.sketching_size_control = add_param.sketching_size_control;
+        param.cond_tol = add_param.cond_tol;
+        param.sarnoldi = 0;
+        param.update = "last_hm_orth";
+
+        tic;
+        [f,out] = funm_quad_adaptive(A,b,param);
+        t = toc;
+    case "adaFOM_shm_t"
+        param = basic_param;
+        param.truncation_length = add_param.truncation_length;
+        param.max_num_quad_points = add_param.max_num_quad_points;
+        param.sketching_mat_type = add_param.sketching_mat_type;
+        param.sketching_size_control = add_param.sketching_size_control;
+        param.cond_tol = add_param.cond_tol;
+        param.sarnoldi = 0;
+        param.update = "last_hm_sorth";
+
+        tic;
+        [f,out] = funm_quad_adaptive(A,b,param);
+        t = toc;
 end
 
 result = struct();
