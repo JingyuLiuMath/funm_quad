@@ -74,9 +74,7 @@ if strcmp(param.function,'invSqrt')
 end
 
 beta_acc = 1;
-if param.sarnoldi == 0
-    S = [];
-end
+S = [];
 % restart loop starts here
 for k = 1:param.max_restarts,
     % check whether a stop condition is satisfied
@@ -119,16 +117,12 @@ for k = 1:param.max_restarts,
     if param.hermitian,
         error("Only support non-Hermitian matrix!")
     else
-        if param.sarnoldi == 1
-            % This feature is currently not supported.
-            % V_big(:, ell+1) = v;
-            % [ m,v,H,eta,breakdown,accuracy_flag, num_oracle ] = sarnoldi_adaptive( A,m_max,H,ell+1,param );
-            % out.num_oracle(k) = num_oracle;
-        else
-            V_big(:, ell+1) = v;
-            [ m,v,H,eta,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S,A,m_max,H,ell+1,param );
-            out.num_oracle(k) = num_oracle;
+        V_big(:, ell+1) = v;
+        switch param.arnoldi
+            case "arnoldi"
+                [ m,v,H,eta,breakdown,accuracy_flag,num_oracle,S ] = arnoldi_adaptive( S,A,m_max,H,ell+1,param );
         end
+        out.num_oracle(k) = num_oracle;
         if k == 1
             m_max = m;
         end

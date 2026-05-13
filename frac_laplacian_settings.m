@@ -6,7 +6,6 @@ method_list = [...
     "sFOM_s", ...
     "adaFOM_t", ...
     "adaFOM_hm_t", ...
-    "adaFOM_shm_t", ...
     ];
 
 m = 100;
@@ -14,7 +13,7 @@ max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
 
-sketching_mat_type = "sparse sign";
+sketching_mat_type = "Gaussian";
 sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;

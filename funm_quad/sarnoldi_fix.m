@@ -184,5 +184,3 @@ else
         fprintf("  cond_V: %.1e\n", cond_V);
     end
 end
-
-V_big(:, (m + 1) : end) = 0;

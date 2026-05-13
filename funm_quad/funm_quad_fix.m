@@ -76,7 +76,7 @@ end
 beta_acc = 1;
 
 % Generate fixed sketching matrix before restart cycles
-if param.sarnoldi == 1
+if isfield(param, "sketching_mat_type")
     assert(param.truncation_length == inf, ...
         "Currently, when using s-Arnoldi, truncation length must be inf!");
     S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
@@ -123,15 +123,16 @@ for k = 1:param.max_restarts,
     if param.hermitian
         error("Only support non-Hermitian matrix!")
     else
-        if param.sarnoldi == 1
-            V_big(:, ell + 1) = v;
-            [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = sarnoldi_fix( S,A,m+ell,H,ell+1,param );
-            out.num_oracle(k) = num_oracle;
-        else
-            V_big(:, ell + 1) = v;
-            [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = arnoldi_fix( A,m+ell,H,ell+1,param );
-            out.num_oracle(k) = num_oracle;
+        V_big(:, ell + 1) = v;
+        switch param.arnoldi
+            case "arnoldi"
+                [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = arnoldi_fix( A,m+ell,H,ell+1,param );
+            case "sarnoldi"
+                [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = sarnoldi_fix( S,A,m+ell,H,ell+1,param );
+            case "hm-sarnoldi"
+                [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = hm_sarnoldi_fix( S,A,m+ell,H,ell+1,param );
         end
+        out.num_oracle(k) = num_oracle;
         beta = v_value / V_big(tmp_ind, ell + 1);
         beta_acc = beta_acc * beta;
         rhs = norm_b * beta_acc * unit(1 + ell, m + ell);
