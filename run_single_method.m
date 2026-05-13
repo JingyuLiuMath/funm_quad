@@ -36,7 +36,7 @@ switch method_name
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
         t = toc;
-    case "sFOM_shm"
+    case "sGMRES_s"
         param = basic_param;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.sketching_mat_type = add_param.sketching_mat_type;

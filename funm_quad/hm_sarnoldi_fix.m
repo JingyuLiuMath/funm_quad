@@ -9,6 +9,9 @@ SAV = zeros(s, m + 1);
 H(m+1,m) = 0;
 breakdown = 0;
 
+n = size(V_big, 1);
+AV_big = zeros(n, m + 1);
+
 num_oracle = 0;
 for k = start_ind:(m + 1)
 
@@ -18,6 +21,7 @@ for k = start_ind:(m + 1)
     else
         w = A(w);
     end
+    AV_big(:, k) = w;
     SAV(:, k) = S * w;
     num_oracle = num_oracle + 1;
 
@@ -42,10 +46,11 @@ for k = start_ind:(m + 1)
     end
 end
 
-V = V_big(:,1: (m + 1));
-norm(A*V(:,1:m) - V*H)
-norm((S*A*V)'*(S*A*V) - eye(m+1))
+% V = V_big(:,1: (m + 1));
+% norm(A*V(:,1:m) - V*H)
+% norm((S*A*V)'*(S*A*V) - eye(m+1))
 
+w = V_big(:, m + 1);
 h = H(m+1,m);
 H = H(1:m,1:m);
 

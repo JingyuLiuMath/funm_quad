@@ -7,13 +7,15 @@ method_list = [...
     "adaFOM_t", ...
     "adaGMRES_t", ...
     ];
+method_list = ["adaGMRES_t"];
+method_list = ["sGMRES_s"];
 
 m = 100;
 max_restarts = 300;
 
 truncation_length_list = [2, 1, 0];
 
-sketching_mat_type = "Gaussian";
+sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 sketching_size_control = 2;
 cond_tol = 1e4;
@@ -24,7 +26,7 @@ max_num_quad_points = 512;
 
 number_thick = 5;
 
-check_flag = 0;
+check_flag = 1;
 
 fprintf("quad_tol: %.1e\n", quad_tol);
 fprintf("stop_tol: %.1e\n", stop_tol);
