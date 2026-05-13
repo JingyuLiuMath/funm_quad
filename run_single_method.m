@@ -47,7 +47,7 @@ switch method_name
         tic;
         [f,out] = funm_quad_fix(A,b,param);
         t = toc;
-    case "adaFOM_hm_t"
+    case "adaGMRES_t"
         param = basic_param;
         param.truncation_length = add_param.truncation_length;
         param.max_num_quad_points = add_param.max_num_quad_points;
