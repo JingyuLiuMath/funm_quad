@@ -12,6 +12,9 @@ num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
     method_name = method_list(it_method);
+    if contains(method_name, "GMRES")
+        continue;
+    end
     if endsWith(method_name, "_t")
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);
@@ -25,10 +28,6 @@ for it_method = 1 : num_method
                 max_num_quad_points, ...
                 sketching_mat_type, sketching_size, ...
                 sketching_size_control, cond_tol);
-
-            % result_without_thick_restart = run_single_method(A, b, method_name, basic_param, add_param);
-            % save_name_without = save_name + " (without thick restarting)";
-            % result_without_thick_restart.save_name = save_name_without;
 
             thick_param = basic_param;
             thick_param.thick = @thick_quad;
@@ -52,10 +51,6 @@ for it_method = 1 : num_method
             max_num_quad_points, ...
             sketching_mat_type, sketching_size, ...
             sketching_size_control, cond_tol);
-
-        % result_without_thick_restart = run_single_method(A, b, method_name, basic_param, add_param);
-        % save_name_without = save_name + " (without thick restarting)";
-        % result_without_thick_restart.save_name = save_name_without;
 
         thick_param = basic_param;
         thick_param.thick = @thick_quad;

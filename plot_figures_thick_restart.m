@@ -9,6 +9,9 @@ num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
     method_name = method_list(it_method);
+    if contains(method_name, "GMRES")
+        continue;
+    end
     if endsWith(method_name, "_t")
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);

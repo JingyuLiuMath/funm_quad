@@ -1,6 +1,5 @@
 clear all;
 close all;
-warning off;
 
 conv_diff_settings;
 

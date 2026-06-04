@@ -4,11 +4,10 @@ figure_prefix = "./figure/frac_laplacian/frac_laplacian";
 method_list = [...
     "FOM", ...
     "sFOM_s", ...
+    "sGMRES_s", ...
     "adaFOM_t", ...
     "adaGMRES_t", ...
     ];
-method_list = ["adaGMRES_t"];
-method_list = ["sGMRES_s"];
 
 m = 100;
 max_restarts = 300;
@@ -26,7 +25,7 @@ max_num_quad_points = 512;
 
 number_thick = 5;
 
-check_flag = 1;
+check_flag = 0;
 
 fprintf("quad_tol: %.1e\n", quad_tol);
 fprintf("stop_tol: %.1e\n", stop_tol);

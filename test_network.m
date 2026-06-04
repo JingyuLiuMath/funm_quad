@@ -1,6 +1,5 @@
 clear all;
 close all;
-warning off;
 
 network_settings;
 
