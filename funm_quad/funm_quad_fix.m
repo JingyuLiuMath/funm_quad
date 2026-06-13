@@ -28,14 +28,11 @@ if ~fun_switch,
     error('FUNM_QUAD: param.function is neither a built-in function nor a function handle.');
 end
 
-
 if param.waitbar,
     hand = waitbar(0,'Please wait...');
 end
 
 n = length(b);
-norm_b = norm(b);
-v = b / norm_b;
 if param.restart_length >= n
     if param.verbose >= 1
         disp('Warning: Restart length larger than matrix dimension. Running Arnoldi/Lanczos without restarts.');
@@ -73,6 +70,7 @@ if strcmp(param.function,'invSqrt')
     beta_transform = param.transformation_parameter;
 end
 
+v = b;
 beta_acc = 1;
 
 % Generate fixed sketching matrix before restart cycles
@@ -131,7 +129,7 @@ for k = 1:param.max_restarts
         end
         out.num_oracle(k) = num_oracle;
         beta_acc = beta_acc * beta;
-        rhs = norm_b * beta_acc * unit(1 + ell, m + ell);
+        rhs = beta_acc * unit(1 + ell, m + ell);
     end
 
     if breakdown
