@@ -10,7 +10,7 @@ fprintf("\\caption{%s}\n", caption_name);
 fprintf("\\label{tab:%s}\n", label_name);
 fprintf("\\begin{tabular}{cccccc}\n")
 fprintf("\\toprule\n")
-fprintf("method & error & time (s) & no. iter & no. mat-vec & max. no. vecs\\\\ \n")
+fprintf("method & error & time (s) & \\(n_{\\iter}\\) & \\(n_{\\matvec}\\) & \\(n_{\\vecs}\\)\\\\ \n")
 num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method

@@ -18,6 +18,7 @@ for j = 1:N
     ptr = ptr + zeta;
 end
 
+vals = vals / sqrt(zeta); 
 S = sparse(rows, cols_idx, vals, s, N);
 
 end

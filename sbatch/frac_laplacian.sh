@@ -4,7 +4,7 @@
 #SBATCH --output=frac_laplacian_%j.out
 #SBATCH --error=frac_laplacian_%j.err
 #SBATCH --nodelist=bigMem1
-#SBATCH --cpus-per-task=16
+#SBATCH --cpus-per-task=64
 
 module unload MATLAB
 module load MATLAB/R2023b

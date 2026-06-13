@@ -49,7 +49,7 @@ for it = 1 : num_result
         "DisplayName", display_name);
     hold on;
 end
-legend("location", "northeast");
+legend("location", "southeastoutside");
 xlabel('number of matrix-vector products');
 ylabel('relative error');
 set(gca, 'FontSize', 18);
