@@ -36,8 +36,8 @@ end
 n = length(b);
 norm_b = norm(b);
 v = b / norm_b;
-if param.restart_length >= n,
-    if param.verbose >= 1,
+if param.restart_length >= n
+    if param.verbose >= 1
         disp('Warning: Restart length larger than matrix dimension. Running Arnoldi/Lanczos without restarts.');
     end
     param.restart_length = n;
@@ -65,7 +65,7 @@ out.stop_condition = '0 - maximal # of restarts exceeded';
 % allocate memory [ >= m+max(ell) ]
 global V_big
 alloc = param.restart_length + 20;
-V_big = zeros(length(b),alloc);
+V_big = zeros(n,alloc);
 
 max_num_quad_points = param.max_num_quad_points;
 N = 32; % initial number of quadrature points
@@ -82,42 +82,39 @@ if isfield(param, "sketching_mat_type")
     S = sketching_mat(param.sketching_size, n, param.sketching_mat_type);
 end
 % restart loop starts here
-for k = 1:param.max_restarts,
+for k = 1:param.max_restarts
     % check whether a stop condition is satisfied
-    if str2double(out.stop_condition(1)),
+    if str2double(out.stop_condition(1))
         break
     end
 
-    if param.verbose >= 2,
+    if param.verbose >= 2
         disp(['---- Restart cycle ',num2str(k),' ----']);
     end
 
     % waitbar and cputime
-    if param.waitbar,
+    if param.waitbar
         waitbar(k/param.max_restarts,hand);
     end
     out.time(k) = cputime;
 
     % compute A-invariant subspace of prev. cycle (thick restart)
-    if (~isempty(param.thick) && k > 1),
+    if ~isempty(param.thick) && k > 1
         ell_prev = ell;
-        [ ell,U,T,D ] = param.thick( U,T,D, param.number_thick );
-        out.thick_replaced{k-1} = D(1:ell);
-        out.thick_interpol{k-1} = D(ell+1:end);
-        if ell,
-            U = U(:,1:ell);
-            V_big(:,1:ell) = V_big(:,1:m+ell_prev)*U;
-            H_hat = U'*H*U;
-            H = [H_hat; eta*U(end,:)];
+        [ell, U, T, D] = param.thick(U, T, D, param.number_thick);
+        out.thick_replaced{k - 1} = D(1 : ell);
+        out.thick_interpol{k - 1} = D((ell+1) : end);
+        if ell
+            U = U(:, 1 : ell);
+            V_big(:, 1 : ell) = V_big(:, 1 : (m + ell_prev)) * U;
+            H_hat = U' * H * U;
+            H = [H_hat; eta * U(end, :)];
         else
             H = [];
         end
     else
         H = [];
     end
-
-    tmp_ind = find(v, 1);
-    v_value = v(tmp_ind);
 
     % compute/extend Krylov decomposition
     if param.hermitian
@@ -126,45 +123,42 @@ for k = 1:param.max_restarts,
         V_big(:, ell + 1) = v;
         switch param.arnoldi
             case "arnoldi"
-                [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = arnoldi_fix( A,m+ell,H,ell+1,param );
+                [ v, H, eta, beta, breakdown, num_oracle] = arnoldi_fix(A, m + ell, H, ell + 1, param);
             case "sarnoldi"
-                [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = sarnoldi_fix( S,A,m+ell,H,ell+1,param );
-            case "hm-sarnoldi"
-                [ v,H,eta,breakdown, accuracy_flag,num_oracle ] = hm_sarnoldi_fix( S,A,m+ell,H,ell+1,param );
+                [ v, H, eta, beta, breakdown, num_oracle] = sarnoldi_fix(S, A, m + ell, H,ell + 1, param);
+            case "shmarnoldi"
+                [ v, H, eta, beta, breakdown, num_oracle] = shmarnoldi_fix(S, A, m + ell, H, ell + 1, param);
         end
         out.num_oracle(k) = num_oracle;
-        beta = v_value / V_big(tmp_ind, ell + 1);
         beta_acc = beta_acc * beta;
         rhs = norm_b * beta_acc * unit(1 + ell, m + ell);
     end
 
     if breakdown
         m = breakdown;
-        if ~accuracy_flag
-            if param.verbose >= 2
-                if param.hermitian == 0
-                    disp(['Arnoldi breakdown in cycle ', num2str(k),', iteration ',num2str(breakdown)]);
-                else
-                    error("Only support non-Hermitian matrix!")
-                end
+        if param.verbose >= 2
+            if param.hermitian == 0
+                disp(['Arnoldi breakdown in cycle ', num2str(k),', iteration ',num2str(breakdown)]);
+            else
+                error("Only support non-Hermitian matrix!")
             end
-            H = H(1:breakdown+ell,1:breakdown+ell);
         end
+        H = H(1 : (breakdown + ell), 1 : (breakdown + ell));
     end
 
     out.thick_interpol{k} = eig(H);
 
     % store full Krylov basis?
-    if param.V_full,
-        out.V_full = [ out.V_full , V_big(:,1:m+ell) ];
+    if param.V_full
+        out.V_full = [out.V_full, V_big(:, 1 : (m + ell))];
     end
 
     % Schur form of H (for thick restarts)
-    if (~isempty(param.thick)),
-        if isreal(H),
-            [U,T] = schur(H,'real');
+    if ~isempty(param.thick)
+        if isreal(H)
+            [U, T] = schur(H, 'real');
         else
-            [U,T] = schur(H);
+            [U, T] = schur(H);
         end
         D = ordeig(T);
     end
@@ -178,17 +172,17 @@ for k = 1:param.max_restarts,
     % sweep, respectively)
 
     active_nodes = [];
-    for kk = 1:k-1,
-        active_nodes = [ active_nodes ; out.thick_interpol{kk} ];
+    for kk = 1 : (k - 1)
+        active_nodes = [active_nodes; out.thick_interpol{kk}];
     end
-    if ~isempty(param.thick) && k > 1,
-        active_nodes = [ active_nodes ; out.thick_replaced{k-1} ];
+    if ~isempty(param.thick) && k > 1
+        active_nodes = [active_nodes; out.thick_replaced{k - 1}];
     end
 
-    if (param.H_full),
+    if (param.H_full)
         H_full = blkdiag(H_full,H);
-        if k>1,
-            H_full(end-m+1,end-m-ell) = s;
+        if k > 1
+            H_full(end - m + 1, end - m - ell) = s;
         end
     end
 
@@ -197,31 +191,28 @@ for k = 1:param.max_restarts,
     if k == 1 && fun_switch ~= 4 % in the first iteration g_1 = f and we use the "closed" form
         switch fun_switch
             case 1
-                % h2 = sqrtm(H)\unit(ell+1,m+ell);
                 h2 = sqrtm(H) \ rhs;
             case 2
-                % h2 = logm(eye(m+ell)+H)*(H\unit(ell+1,m+ell));
                 h2 = logm(eye(m) + H) * (H \ rhs);
             case 3
-                % h2 = expm(H)*unit(ell+1,m+ell);
                 h2 = expm(H) * rhs;
         end
     else
         converged = 0;
         tol = param.tol;
         h1 = [];
-        while ~converged,
+        while ~converged
             % compute eigenvalue decomposition of Hessenberg matrix
-            [WW,DD] = eig(H);
+            [WW, DD] = eig(H);
 
             % approximate the restart function by Gauss-Jacobi quadrature
-            if isempty(h1) && fun_switch ~= 4,
+            if isempty(h1) && fun_switch ~= 4
                 N2 = N;
                 if N > 2
-                    N=floor(N/sqrt(2));
+                    N = floor(N / sqrt(2));
                 end
-                if mod(N,2) == 1
-                    N = N-1;
+                if mod(N, 2) == 1
+                    N = N - 1;
                 end
 
                 switch fun_switch
@@ -386,20 +377,20 @@ for k = 1:param.max_restarts,
 
             % Check if quadrature rule has converged
             if fun_switch ~= 4
-                if norm(h2-h1)/norm(h2) < tol
-                    if param.verbose >= 2,
+                if norm(h2 - h1) / norm(h2) < tol
+                    if param.verbose >= 2
                         disp([num2str(N),' quadrature points were enough. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     out.num_quadpoints(k) = N2;
                     converged = 1;
                 elseif ceil(sqrt(2) * N2) < max_num_quad_points
-                    if param.verbose >= 2,
+                    if param.verbose >= 2
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
                     h1 = h2;
                     N = N2;
                 else
-                    if param.verbose >= 2,
+                    if param.verbose >= 2
                         fprintf("quadrature does not converge but exceed max\n");
                     end
                     out.num_quadpoints(k) = N2;
@@ -414,24 +405,23 @@ for k = 1:param.max_restarts,
 
     % workaround due to matlab 'bug' (copies large submatrices)
 
-    h_big = h2(1:m+ell,1);
-    if size(V_big,2) > length(h_big),
-        h_big(size(V_big,2),1) = 0;
+    h_big = h2(1 : (m + ell), 1);
+    if size(V_big,2) > length(h_big)
+        h_big(size(V_big, 2), 1) = 0;
     end
     % update Krylov approximation
-    f_update = V_big*h_big;
+    f_update = V_big * h_big;
     f = f + f_update;
 
     out.appr(:,k) = f;
     out.update(k) = norm(f_update);  % norm of update
     out.dim(k) = m + ell;
 
-
     % keep track of subdiagonal entries of Hessenberg matrix
     if m ~= 1
-        subdiag = [ subdiag ; diag(H(end-m+1:end,end-m+1:end),-1) ; eta ];
+        subdiag = [subdiag; diag(H((end - m + 1) : end, (end - m + 1) : end), -1); eta];
     else
-        subdiag = [ subdiag ; eta ];
+        subdiag = [subdiag; eta];
     end
     s = eta;
 
@@ -440,35 +430,34 @@ for k = 1:param.max_restarts,
     out.time(k) = cputime - out.time(k);
 
     % check stopping condition
-    % if out.update(k)/norm(f) < param.stopping_accuracy % stop by norm of update?
-    %     out.stop_condition = '5 - norm of updates decayed below stopping accuracy';
-    % end
+    if out.update(k) / norm(f) < param.stopping_accuracy % stop by norm of update?
+        out.stop_condition = '5 - norm of updates decayed below stopping accuracy';
+    end
 
-    if ~isempty(param.exact),
+    if ~isempty(param.exact)
         % stop by absolute error?
         out.err(k) = norm(f - param.exact) / norm(param.exact);
 
-        % if stopcondition(out.err(2:end)./out.err(1:end-1) >  param.min_decay),
-        %     out.stop_condition = '3 - linear convergence rate of absolute error > min_decay';
-        % end
-        if out.err(k) < param.stopping_accuracy,
+        if stopcondition(out.err(2:end)./out.err(1:end-1) > param.min_decay)
+            out.stop_condition = '3 - linear convergence rate of absolute error > min_decay';
+        end
+        if out.err(k) < param.stopping_accuracy
             out.stop_condition = '1 - absolute error below stopping accuracy';
         end
     end
 
-    if breakdown && ~accuracy_flag,
+    if breakdown
         out.stop_condition = '6 - Arnoldi/Lanczos breakdown';
     end
-
 end
 % restart loop ends here
 
-if param.H_full,
+if param.H_full
     out.H_full = H_full;
 end
 
 
-if param.waitbar,
+if param.waitbar
     close(hand);
 end
 
@@ -484,11 +473,11 @@ function r = stopcondition(v)
 
 r = 0;
 
-if length(v) < 2,
+if length(v) < 2
     return
 end
 
-if all(v(end-1:end)) && ~all(v),
+if all(v(end-1:end)) && ~all(v)
     r = 1;
     return
 end
