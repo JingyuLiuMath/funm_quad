@@ -55,7 +55,7 @@ switch method_name
         param.sketching_size_control = add_param.sketching_size_control;
         param.cond_tol = add_param.cond_tol;
         param.arnoldi = "arnoldi";
-        param.update = "last_Aorth";
+        param.update = "last_hmorth";
 
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);

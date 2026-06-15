@@ -1,17 +1,17 @@
 function [f,out,param] = funm_quad_fix(A,b,param)
 
-if nargin < 3,
+if nargin < 3
     param = struct;
 end
 
 [param,modified] = param_init_quad(param);
 
-if modified && param.verbose,
+if modified && param.verbose
     disp('Some of the parameters were inconsistent. FUNM_QUAD will now run with a corrected setting.');
 end
 
 fun_switch = 0;
-if strcmp(param.function,'invSqrt'),
+if strcmp(param.function,'invSqrt')
     fun_switch = 1;
 end
 if strcmp(param.function,'log')
@@ -24,11 +24,11 @@ if isa(param.function,'function_handle')
     fun_switch = 4;
 end
 
-if ~fun_switch,
+if ~fun_switch
     error('FUNM_QUAD: param.function is neither a built-in function nor a function handle.');
 end
 
-if param.waitbar,
+if param.waitbar
     hand = waitbar(0,'Please wait...');
 end
 

@@ -1,4 +1,4 @@
-function [w,H,h] = arnoldi_last_hm_orth_update(m, w, H, h, AV_big)
+function [w,H,h] = arnoldi_last_hmorth_update(m, w, H, h, AV_big)
 
 global V_big;
 
