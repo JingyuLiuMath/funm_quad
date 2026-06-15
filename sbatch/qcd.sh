@@ -4,7 +4,7 @@
 #SBATCH --output=qcd_%j.out
 #SBATCH --error=qcd_%j.err
 #SBATCH --nodelist=bigMem1
-#SBATCH --cpus-per-task=64
+#SBATCH --exclusive
 
 module unload MATLAB
 module load MATLAB/R2023b

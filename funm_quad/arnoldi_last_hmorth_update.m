@@ -19,7 +19,7 @@ global V_big;
 %           = [H;h*em']'*R'*R(:,end)
 
 em = zeros(m,1); em(m)=1;
-[~,R] = qr([V_big(:,1:m),w],0);
+[~,R] = qr([V_big(:,1:m),w], "econ");
 
 %c = ([H;h*em']'*R'*R(1:m+1,1:m)) \ ([H;h*em']'*R'*R(:,end));
 
