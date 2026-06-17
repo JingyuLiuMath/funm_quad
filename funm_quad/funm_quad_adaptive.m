@@ -73,7 +73,7 @@ end
 v = b;
 beta_acc = 1;
 S = [];
-m_total = m;
+m_max = m;
 % restart loop starts here
 for k = 1:param.max_restarts
     % check whether a stop condition is satisfied
@@ -114,12 +114,14 @@ for k = 1:param.max_restarts
         error("Only support non-Hermitian matrix!")
     else
         V_big(:, ell + 1) = v;
-        m_max = m + ell;
         switch param.arnoldi
             case "arnoldi"
                 [m_total, v, H, eta, beta, breakdown, num_oracle, S] = arnoldi_adaptive(S, A, m_max, H, ell + 1, param);
             otherwise
                 error("FUNM_QUAD: unknown adaptive Arnoldi process.");
+        end
+        if k == 1
+            m_max = m_total;
         end
         m_cycle = m_total - ell;
         out.num_oracle(k) = num_oracle;
