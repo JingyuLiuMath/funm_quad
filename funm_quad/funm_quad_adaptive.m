@@ -203,7 +203,7 @@ for k = 1:param.max_restarts
             if isempty(h1) && fun_switch ~= 4
                 N2 = N;
                 if N > 2
-                    N = floor(N / sqrt(2));
+                    N = floor(N / 2);
                 end
                 if mod(N, 2) == 1
                     N = N - 1;
@@ -287,7 +287,7 @@ for k = 1:param.max_restarts
                 end
             end
 
-            N2 = ceil(sqrt(2)*N);
+            N2 = ceil(2*N);
             if mod(N2,2) == 1
                 N2 = N2+1;
             end
@@ -377,7 +377,7 @@ for k = 1:param.max_restarts
                     end
                     out.num_quadpoints(k) = N2;
                     converged = 1;
-                elseif ceil(sqrt(2) * N2) < max_num_quad_points
+                elseif ceil(2 * N2) <= max_num_quad_points
                     if param.verbose >= 2
                         disp([num2str(N),' quadrature points were not enough. Trying ',num2str(N2),'. Norm: ', num2str(norm(h2-h1)/norm(f))])
                     end
