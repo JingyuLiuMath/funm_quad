@@ -3,7 +3,7 @@
 #SBATCH --job-name=frac_laplacian
 #SBATCH --output=frac_laplacian_%j.out
 #SBATCH --error=frac_laplacian_%j.err
-#SBATCH --nodelist=bigMem1
+#SBATCH --nodelist=bigMem0
 #SBATCH --exclusive
 
 module unload MATLAB

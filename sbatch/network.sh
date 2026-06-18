@@ -3,7 +3,7 @@
 #SBATCH --job-name=network
 #SBATCH --output=network_%j.out
 #SBATCH --error=network_%j.err
-#SBATCH --nodelist=bigMem1
+#SBATCH --nodelist=bigMem0
 #SBATCH --exclusive
 
 module unload MATLAB
