@@ -1,7 +1,6 @@
 data_prefix = "./data/frac_laplacian/";
 figure_prefix = "./figure/frac_laplacian/frac_laplacian";
 
-test_mode = 0;
 method_list = [...
     "FOM", ...
     "sFOM_s", ...
@@ -13,16 +12,12 @@ method_list = [...
 m = 100;
 max_restarts = 300;
 
-if test_mode == 1
-    truncation_length_list = [2, 1, 0];
-else
-    truncation_length_list = [2, 1, 0];
-end
+truncation_length_list = [2, 1, 0];
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 sketching_size_control = 2;
-cond_tol = 1e4;
+cond_tol = 1e6;
 
 quad_tol = 1e-9;
 stop_tol = 1e-7;

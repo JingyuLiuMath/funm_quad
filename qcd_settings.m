@@ -1,7 +1,6 @@
 data_prefix = "./data/qcd/";
 figure_prefix = "./figure/qcd/qcd";
 
-test_mode = 0;
 method_list = [...
     "FOM", ...
     "sFOM_s", ...
@@ -13,20 +12,16 @@ method_list = [...
 m = 150;
 max_restarts = 300;
 
-if test_mode == 1
-    truncation_length_list = [2, 1, 0];
-else
-    truncation_length_list = [2, 1, 0];
-end
+truncation_length_list = [2, 1, 0];
 
 sketching_mat_type = "sparse sign";
 sketching_size = 2 * m;
 sketching_size_control = 2;
-cond_tol = 1e4;
+cond_tol = 1e6;
 
 quad_tol = 1e-9;
 stop_tol = 1e-7;
-max_num_quad_points = 1024 * 8;
+max_num_quad_points = 512;
 
 number_thick = 5;
 
