@@ -16,7 +16,7 @@ max_restarts = 300;
 if test_mode == 1
     truncation_length_list = [2, 1, 0];
 else
-    truncation_length_list = [2, 1];
+    truncation_length_list = [2, 1, 0];
 end
 
 sketching_mat_type = "sparse sign";

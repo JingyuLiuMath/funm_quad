@@ -3,7 +3,7 @@
 #SBATCH --job-name=conv_diff
 #SBATCH --output=conv_diff_%j.out
 #SBATCH --error=conv_diff_%j.err
-#SBATCH --nodelist=bigMem0
+#SBATCH --nodelist=bigMem1
 #SBATCH --exclusive
 
 module unload MATLAB

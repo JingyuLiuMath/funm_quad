@@ -3,7 +3,7 @@
 #SBATCH --job-name=qcd
 #SBATCH --output=qcd_%j.out
 #SBATCH --error=qcd_%j.err
-#SBATCH --nodelist=bigMem0
+#SBATCH --nodelist=bigMem1
 #SBATCH --exclusive
 
 module unload MATLAB

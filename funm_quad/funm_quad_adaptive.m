@@ -116,7 +116,7 @@ for k = 1:param.max_restarts
         V_big(:, ell + 1) = v;
         switch param.arnoldi
             case "arnoldi"
-                [m_total, v, H, eta, beta, breakdown, num_oracle, S] = arnoldi_adaptive(S, A, m_max, H, ell + 1, param);
+                [m_total, v, H, eta, beta, breakdown, num_oracle, S] = arnoldi_adaptive(S, A, m_max + ell, H, ell + 1, param);
             otherwise
                 error("FUNM_QUAD: unknown adaptive Arnoldi process.");
         end
@@ -426,17 +426,17 @@ for k = 1:param.max_restarts
     out.time(k) = cputime - out.time(k);
 
     % check stopping condition
-    if out.update(k) / norm(f) < param.stopping_accuracy % stop by norm of update?
-        out.stop_condition = '5 - norm of updates decayed below stopping accuracy';
-    end
+    % if out.update(k) / norm(f) < param.stopping_accuracy % stop by norm of update?
+    %     out.stop_condition = '5 - norm of updates decayed below stopping accuracy';
+    % end
 
     if ~isempty(param.exact)
         % stop by absolute error?
         out.err(k) = norm(f - param.exact) / norm(param.exact);
 
-        if stopcondition(out.err(2:end)./out.err(1:end-1) > param.min_decay)
-            out.stop_condition = '3 - linear convergence rate of absolute error > min_decay';
-        end
+        % if stopcondition(out.err(2:end)./out.err(1:end-1) > param.min_decay)
+        %     out.stop_condition = '3 - linear convergence rate of absolute error > min_decay';
+        % end
         if out.err(k) < param.stopping_accuracy
             out.stop_condition = '1 - absolute error below stopping accuracy';
         end
