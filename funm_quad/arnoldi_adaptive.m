@@ -13,15 +13,15 @@ if isempty(S)
     S = sketching_mat(s0, n, param.sketching_mat_type);
 end
 
-Q_big = zeros(size(S, 1), size(V_big, 2));
+P_big = zeros(size(S, 1), size(V_big, 2));
 
 lastv = V_big(:, start_ind);
 beta = norm(lastv);
 lastv = lastv / beta;
 V_big(:, start_ind) = lastv;
 
-Q_big(:, 1 : start_ind) = S * V_big(:, 1 : start_ind);
-lastq = Q_big(:, start_ind);
+P_big(:, 1 : start_ind) = S * V_big(:, 1 : start_ind);
+lastp = P_big(:, start_ind);
 
 examine_period = min(ceil((m_max - start_ind + 1) / 10), 5);
 examine_period = max(examine_period, 1);
@@ -53,24 +53,24 @@ for j = start_ind : m_max
     end
 
     lastv = lastv / H(j + 1, j);
-    lastq = S * lastv;
+    lastp = S * lastv;
 
     if j < m_max
         V_big(:, j + 1) = lastv;
-        Q_big(:, j + 1) = lastq;
+        P_big(:, j + 1) = lastp;
 
         if size(S, 1) < param.sketching_size_control * (j + 1)
             S_incr = sketching_mat(s0, n, param.sketching_mat_type);
             S = [S; S_incr];
-            Q_big = [Q_big; S_incr * V_big(:, 1 : (j + 1)), zeros(size(S_incr, 1), size(Q_big, 2) - j - 1)];
-            lastq = Q_big(:, j + 1);
+            P_big = [P_big; S_incr * V_big(:, 1 : (j + 1)), zeros(size(S_incr, 1), size(P_big, 2) - j - 1)];
+            lastp = P_big(:, j + 1);
             if param.verbose >= 2
                 fprintf("sketching size increased to %d\n", size(S, 1));
             end
         end
 
         if mod(num_oracle, examine_period) == 0
-            if cond(Q_big(:, 1 : (j + 1))) > param.cond_tol
+            if cond(P_big(:, 1 : (j + 1))) > param.cond_tol
                 break
             end
         end
@@ -80,7 +80,7 @@ end
 m = j;
 h = H(m + 1, m);
 H = H(1 : m, 1 : m);
-SV_big = Q_big(:, 1 : m);
+SV_big = P_big(:, 1 : m);
 V_big(:, m + 1) = 0;
 
 if ~isempty(param.update)
@@ -91,7 +91,7 @@ if ~isempty(param.update)
             print_check_metrics("after update", m, lastv, H, h, A, V_big(:, 1 : m), [], param);
         case "last_sorth"
             print_check_metrics("before update", m, lastv, H, h, A, V_big(:, 1 : m), S, param);
-            [lastv, H, h, ~] = arnoldi_last_sorth_update(m, lastv, H, h, SV_big, lastq);
+            [lastv, H, h, ~] = arnoldi_last_sorth_update(m, lastv, H, h, SV_big, lastp);
             print_check_metrics("after update", m, lastv, H, h, A, V_big(:, 1 : m), S, param);
         case "last_hmorth"
             if should_check(param)
@@ -107,7 +107,7 @@ if ~isempty(param.update)
                 AV_big = compute_AV(A, V_big(:, 1 : m));
                 print_check_metrics("before update", m, lastv, H, h, A, AV_big, S, param);
             end
-            [lastv, H, h] = arnoldi_last_shmorth_update(m, lastv, H, h, SV_big, lastq);
+            [lastv, H, h] = arnoldi_last_shmorth_update(m, lastv, H, h, SV_big, lastp);
             if should_check(param)
                 print_check_metrics("after update", m, lastv, H, h, A, AV_big, S, param);
             end
