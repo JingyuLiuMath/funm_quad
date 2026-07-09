@@ -11,44 +11,39 @@ num_oracle = 0;
 
 P_big = zeros(size(S, 1), size(V_big, 2));
 Q_big = zeros(size(S, 1), size(V_big, 2));
-U_big = zeros(size(S, 1), size(V_big, 2));
+Z_big = zeros(size(S, 1), size(V_big, 2));
 
-P_big(:, 1) = S * V_big(:, 1);
-
-lastv = V_big(:, 1);
-lastp = P_big(:, 1);
+lastv = V_big(:, start_ind);
+lastp = S * lastv;
 
 beta = norm(lastp);
-lastv = lastv / beta;
 lastp = lastp / beta;
+lastv = lastv / beta;
 
-V_big(:, 1) = lastv;
-P_big(:, 1) = lastp;
+V_big(:, start_ind) = lastv;
+P_big(:, start_ind) = lastp;
 
 for j = start_ind : m
     if isnumeric(A)
-        lastw = A * lastv;
+        lastv = A * lastv;
     else
-        lastw = A(lastv);
+        lastv = A(lastv);
     end
-    lastq = S * lastw;
+    lastp = S * lastv;
     num_oracle = num_oracle + 1;
-    Q_big(:, j) = lastq;
+    Q_big(:, j) = lastp;
 
     rho = Q_big(:, j)' * P_big(:, j);
     if abs(rho) < eps * norm(Q_big(:, j)) * norm(P_big(:, j))
         error("FUNM_QUAD:shmarnoldi_fix", ...
             "Biorthogonal breakdown at column %d.", j);
     end
-    U_big(:, j) = Q_big(:, j) / conj(rho);
-
-    lastv = lastw;
-    lastp = lastq;
+    Z_big(:, j) = Q_big(:, j) / conj(rho);
 
     j_trunc_start = max([1, j - trunc + 1]);
     for r = 0 : reo
         for i = j_trunc_start : j
-            ip = U_big(:, i)' * lastp;
+            ip = Z_big(:, i)' * lastp;
             H(i, j) = H(i, j) + ip;
             lastp = lastp - P_big(:, i) * ip;
             lastv = lastv - V_big(:, i) * ip;

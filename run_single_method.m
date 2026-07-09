@@ -3,7 +3,7 @@ function result = run_single_method(A, b, method_name, basic_param, add_param)
 rng(1);
 
 switch method_name
-    case "FOM"
+    case "Arn"
         param = basic_param;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.arnoldi = "arnoldi";
@@ -12,7 +12,7 @@ switch method_name
         tic;
         [f, out] = funm_quad_fix(A,b,param);
         t = toc;
-    case "sFOM_s"
+    case "sArn"
         param = basic_param;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.sketching_mat_type = add_param.sketching_mat_type;
@@ -23,7 +23,7 @@ switch method_name
         tic;
         [f,out] = funm_quad_fix(A,b,param);
         t = toc;
-    case "sGMRES_s"
+    case "sHmArn"
         param = basic_param;
         param.max_num_quad_points = add_param.max_num_quad_points;
         param.sketching_mat_type = add_param.sketching_mat_type;
@@ -34,7 +34,7 @@ switch method_name
         tic;
         [f,out] = funm_quad_fix(A,b,param);
         t = toc;
-    case "adaFOM_t"
+    case "adaArn_t"
         param = basic_param;
         param.truncation_length = add_param.truncation_length;
         param.max_num_quad_points = add_param.max_num_quad_points;
@@ -47,7 +47,7 @@ switch method_name
         tic;
         [f,out] = funm_quad_adaptive(A,b,param);
         t = toc;
-    case "adaGMRES_t"
+    case "adaHmArn_t"
         param = basic_param;
         param.truncation_length = add_param.truncation_length;
         param.max_num_quad_points = add_param.max_num_quad_points;

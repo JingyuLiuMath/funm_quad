@@ -12,7 +12,7 @@ num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
     method_name = method_list(it_method);
-    if contains(method_name, "GMRES")
+    if contains(method_name, "HmArn")
         continue;
     end
     if endsWith(method_name, "_t")

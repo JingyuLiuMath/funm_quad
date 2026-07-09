@@ -35,7 +35,7 @@ num_result = length(results_list);
 color_list = get_colors(num_result);
 marker_list = get_markers(num_result);
 
-figure();
+fig = new_plot_figure();
 for it = 1 : num_result
     curr_result = results_list(it);
     display_name = replace(curr_result.save_name, "_", "-");
@@ -54,11 +54,11 @@ xlabel('number of matrix-vector products');
 ylabel('relative error');
 set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_rel_err.eps";
-saveas(gcf, file_name, "epsc");
+save_plot_figure(fig, file_name, "epsc");
 file_name = figure_prefix + "_rel_err.png";
-saveas(gcf, file_name, "png");
+save_plot_figure(fig, file_name, "png");
 
-figure();
+fig = new_plot_figure();
 for it = 1 : num_result
     curr_result = results_list(it);
     display_name = replace(curr_result.save_name, "_", "-");
@@ -77,11 +77,11 @@ xlabel('iteration');
 ylabel('update norm');
 set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_norm_update.eps";
-saveas(gcf, file_name, "epsc");
+save_plot_figure(fig, file_name, "epsc");
 file_name = figure_prefix + "_norm_update.png";
-saveas(gcf, file_name, "png");
+save_plot_figure(fig, file_name, "png");
 
-figure();
+fig = new_plot_figure();
 for it = 1 : num_result
     curr_result = results_list(it);
     display_name = replace(curr_result.save_name, "_", "-");
@@ -100,11 +100,11 @@ xlabel('iteration');
 ylabel('num of quad points');
 set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_num_quad.eps";
-saveas(gcf, file_name, "epsc");
+save_plot_figure(fig, file_name, "epsc");
 file_name = figure_prefix + "_num_quad.png";
-saveas(gcf, file_name, "png");
+save_plot_figure(fig, file_name, "png");
 
-figure();
+fig = new_plot_figure();
 for it = 1 : num_result
     curr_result = results_list(it);
     display_name = replace(curr_result.save_name, "_", "-");
@@ -123,8 +123,38 @@ xlabel('iteration');
 ylabel('subspace dim');
 set(gca, 'FontSize', 18);
 file_name = figure_prefix + "_subspace_dim.eps";
-saveas(gcf, file_name, "epsc");
+save_plot_figure(fig, file_name, "epsc");
 file_name = figure_prefix + "_subspace_dim.png";
-saveas(gcf, file_name, "png");
+save_plot_figure(fig, file_name, "png");
+
+end
+
+function fig = new_plot_figure()
+
+figure_size_pixels = [1892, 1028];
+figure_resolution = 100;
+fig = figure(...
+    "Units", "pixels", ...
+    "Position", [100, 100, figure_size_pixels]);
+paper_size_inches = figure_size_pixels / figure_resolution;
+set(fig, ...
+    "PaperUnits", "inches", ...
+    "PaperPositionMode", "manual", ...
+    "PaperPosition", [0, 0, paper_size_inches], ...
+    "PaperSize", paper_size_inches);
+
+end
+
+function save_plot_figure(fig, file_name, file_format)
+
+drawnow;
+switch file_format
+    case "epsc"
+        print(fig, char(file_name), "-depsc", "-painters");
+    case "png"
+        print(fig, char(file_name), "-dpng", "-r100");
+    otherwise
+        saveas(fig, file_name, file_format);
+end
 
 end

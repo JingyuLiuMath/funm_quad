@@ -9,7 +9,7 @@ num_truncate_len = length(truncation_length_list);
 num_method = length(method_list);
 for it_method = 1 : num_method
     method_name = method_list(it_method);
-    if contains(method_name, "GMRES")
+    if contains(method_name, "HmArn")
         continue;
     end
     if endsWith(method_name, "_t")
@@ -41,11 +41,8 @@ function plot_result(results_list_without, results_list_with, f_ex, figure_prefi
 
 num_result = length(results_list_without);
 
-color_list = get_colors(num_result);
-marker_list = get_markers(num_result);
-
 for it = 1 : num_result
-    figure();
+    fig = new_plot_figure();
     curr_result_without = results_list_without(it);
     curr_result_with = results_list_with(it);
     save_name = curr_result_without.save_name;
@@ -87,16 +84,46 @@ for it = 1 : num_result
     %             'Color', [1 0 1], 'FontSize', 16, 'Rotation', 45);
     %     end
     % end
-    display_name_without = "without thick restart (" + num2str(curr_result_without.time) + ")";
-    display_name_with = "with thick restart (" + num2str(curr_result_with.time) + ")";
+    display_name_without = "without thick restart (" + sprintf('%.1f', curr_result_without.time) + ")";
+    display_name_with = "with thick restart (" + sprintf('%.1f', curr_result_with.time) + ")";
     legend(display_name_without, display_name_with);
     xlabel('number of matrix-vector products');
     ylabel('rel error');
     title(display_name);
     set(gca, 'FontSize', 18);
     hold off;
-    saveas(gcf, figure_prefix + "_" + display_name + "_thick_restart_rel_err.eps", "epsc")
-    saveas(gcf, figure_prefix + "_" + display_name + "_thick_restart_rel_err.png", "png");
+    save_plot_figure(fig, figure_prefix + "_" + display_name + "_thick_restart_rel_err.eps", "epsc")
+    save_plot_figure(fig, figure_prefix + "_" + display_name + "_thick_restart_rel_err.png", "png");
+end
+
+end
+
+function fig = new_plot_figure()
+
+figure_size_pixels = [1892, 1028];
+figure_resolution = 100;
+fig = figure(...
+    "Units", "pixels", ...
+    "Position", [100, 100, figure_size_pixels]);
+paper_size_inches = figure_size_pixels / figure_resolution;
+set(fig, ...
+    "PaperUnits", "inches", ...
+    "PaperPositionMode", "manual", ...
+    "PaperPosition", [0, 0, paper_size_inches], ...
+    "PaperSize", paper_size_inches);
+
+end
+
+function save_plot_figure(fig, file_name, file_format)
+
+drawnow;
+switch file_format
+    case "epsc"
+        print(fig, char(file_name), "-depsc", "-painters");
+    case "png"
+        print(fig, char(file_name), "-dpng", "-r100");
+    otherwise
+        saveas(fig, file_name, file_format);
 end
 
 end
