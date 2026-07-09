@@ -21,9 +21,6 @@ for j = start_ind : m
     num_oracle = num_oracle + 1;
 
     j_trunc_start = max([1, j - trunc + 1]);
-    if j == start_ind
-        j_trunc_start = 1;
-    end
     for r = 0 : reo
         for i = j_trunc_start : j
             ip = V_big(:, i)' * lastv;
@@ -46,6 +43,5 @@ end
 
 h = H(m + 1, m);
 H = H(1 : m, 1 : m);
-
 
 end

@@ -1,9 +1,0 @@
-clear all;
-close all;
-
-network_settings;
-
-print_table(data_prefix, f_ex, ...
-    method_list, ...
-    truncation_length_list, ...
-    caption_name, label_name);
