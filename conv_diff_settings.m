@@ -79,7 +79,5 @@ basic_param.verbose = 1;
 basic_param.check = check_flag;
 
 %% Print.
-caption_name = "Relative error, time, iteration number and matrix-vector product number" + ...
-    " of the invsqrt function" + ...
-    " for the convection-diffusion example.";
+caption_name = "Relative error, runtime, number of iterations, number of matrix-vector products, and maximum number of stored vectors for the inverse square root function in the convection-diffusion example.";
 label_name = "conv_diff";
