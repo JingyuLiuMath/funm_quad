@@ -7,28 +7,27 @@ reo = param.reorth_number;
 breakdown = 0;
 num_oracle = 0;
 
-W_big = zeros(size(V_big));
 P_big = zeros(size(S, 1), size(V_big, 2));
 Q_big = zeros(size(S, 1), size(V_big, 2));
 U_big = zeros(size(S, 1), size(V_big, 2));
 
-if isnumeric(A)
-    W_big(:, 1 : start_ind) = A * V_big(:, 1 : start_ind);
-else
-    W_big(:, 1 : start_ind) = A(V_big(:, 1 : start_ind));
-end
-num_oracle = num_oracle + start_ind;
-
 P_big(:, 1 : start_ind) = S * V_big(:, 1 : start_ind);
-Q_big(:, 1 : start_ind) = S * W_big(:, 1 : start_ind);
+
+if start_ind > 1
+    if isnumeric(A)
+        AV = A * V_big(:, 1 : (start_ind - 1));
+    else
+        AV = A(V_big(:, 1 : (start_ind - 1)));
+    end
+    num_oracle = num_oracle + start_ind - 1;
+    Q_big(:, 1 : (start_ind - 1)) = S * AV;
+end
 
 lastv = V_big(:, start_ind);
 lastp = P_big(:, start_ind);
-lastw = W_big(:, start_ind);
-lastq = Q_big(:, start_ind);
 
-delta = lastq' * lastp;
-if abs(delta) < eps * norm(lastq) * norm(lastp)
+beta = norm(lastp);
+if beta < eps * norm(lastv)
     breakdown = start_ind - 1;
     beta = 0;
     h = 0;
@@ -36,27 +35,22 @@ if abs(delta) < eps * norm(lastq) * norm(lastp)
     return
 end
 
-beta = sqrt(abs(delta));
 lastv = lastv / beta;
 lastp = lastp / beta;
-lastw = lastw / beta;
-lastq = lastq / beta;
 
 V_big(:, start_ind) = lastv;
 P_big(:, start_ind) = lastp;
-W_big(:, start_ind) = lastw;
-Q_big(:, start_ind) = lastq;
 
 if start_ind > 1
-    cross = Q_big(:, 1 : start_ind)' * P_big(:, 1 : start_ind);
-    offdiag = cross - diag(diag(cross));
-    if norm(offdiag, "fro") > 1e-10 * max(1, norm(cross, "fro"))
+    cross = Q_big(:, 1 : (start_ind - 1))' * P_big(:, 1 : start_ind);
+    target = [diag(diag(cross(:, 1 : (start_ind - 1)))), zeros(start_ind - 1, 1)];
+    if norm(cross - target, "fro") > 1e-10 * max(1, norm(cross, "fro"))
         error("FUNM_QUAD:shmarnoldi_fix", ...
-            "shmarnoldi_fix requires the carried basis to satisfy (S*A*V)'*(S*V) diagonal.");
+            "shmarnoldi_fix requires the carried basis to satisfy (S*A*V)'*(S*V) upper orthogonality.");
     end
 end
 
-for i = 1 : start_ind
+for i = 1 : (start_ind - 1)
     rho = Q_big(:, i)' * P_big(:, i);
     if abs(rho) < eps * norm(Q_big(:, i)) * norm(P_big(:, i))
         error("FUNM_QUAD:shmarnoldi_fix", ...
@@ -66,6 +60,22 @@ for i = 1 : start_ind
 end
 
 for j = start_ind : m
+    if isnumeric(A)
+        lastw = A * lastv;
+    else
+        lastw = A(lastv);
+    end
+    lastq = S * lastw;
+    num_oracle = num_oracle + 1;
+    Q_big(:, j) = lastq;
+
+    rho = Q_big(:, j)' * P_big(:, j);
+    if abs(rho) < eps * norm(Q_big(:, j)) * norm(P_big(:, j))
+        error("FUNM_QUAD:shmarnoldi_fix", ...
+            "Biorthogonal breakdown at column %d.", j);
+    end
+    U_big(:, j) = Q_big(:, j) / conj(rho);
+
     lastv = lastw;
     lastp = lastq;
 
@@ -82,16 +92,9 @@ for j = start_ind : m
         end
     end
 
-    if isnumeric(A)
-        lastw = A * lastv;
-    else
-        lastw = A(lastv);
-    end
-    lastq = S * lastw;
-    num_oracle = num_oracle + 1;
-
-    delta = lastq' * lastp;
-    H(j + 1, j) = sqrt(abs(delta));
+    % Scale the residual with its sketched norm.  This avoids computing
+    % S*A*V(:,j+1) at the end of the last step.
+    H(j + 1, j) = norm(lastp);
     if abs(H(j + 1, j)) < j * eps * norm(H(1 : (j + 1), j))
         breakdown = j;
         break
@@ -99,26 +102,13 @@ for j = start_ind : m
 
     lastv = lastv / H(j + 1, j);
     lastp = lastp / H(j + 1, j);
-    lastw = lastw / H(j + 1, j);
-    lastq = lastq / H(j + 1, j);
 
-    if j < (m + 1)
+    if j < m
         V_big(:, j + 1) = lastv;
         P_big(:, j + 1) = lastp;
-        W_big(:, j + 1) = lastw;
-        Q_big(:, j + 1) = lastq;
-
-        rho = lastq' * lastp;
-        if abs(rho) < eps * norm(lastq) * norm(lastp)
-            error("FUNM_QUAD:shmarnoldi_fix", ...
-                "Biorthogonal breakdown at column %d.", j + 1);
-        end
-        U_big(:, j + 1) = lastq / conj(rho);
     end
 end
 
-lastv = V_big(:, m + 1);
-V_big(:, m + 1) = 0;
 h = H(m + 1, m);
 H = H(1 : m, 1 : m);
 
