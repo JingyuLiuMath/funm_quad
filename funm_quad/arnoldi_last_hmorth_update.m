@@ -1,4 +1,4 @@
-function [w,H,h] = arnoldi_last_hmorth_update(m, w, H, h, AV_big)
+function [w,H,h] = arnoldi_last_hmorth_update(m, w, H, h)
 
 global V_big;
 
@@ -28,10 +28,10 @@ R11 = R(1:m,1:m);
 r   = R(1:m,end);
 rho = R(end,end);
 M = H'*R11' + h*(em*r');
-c = R11\(r +  M \ (h*rho^2*em));
+c = R11\(r +  M \ (h*abs(rho)^2*em));
 
-% full formula (too expensive)
-%c = (AV_big' * V_big(:, 1 : m)) \ (AV_big' * w); 
+% The full formula c = (AV_big' * V_big(:, 1 : m)) \ (AV_big' * w)
+% would require forming AV_big.  The QR expression above avoids that.
 
 w = w - V_big(:, 1 : m) * c;
 H(1:m, m) = H(1:m, m) + c * h;

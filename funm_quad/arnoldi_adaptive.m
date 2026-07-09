@@ -94,16 +94,23 @@ if ~isempty(param.update)
             [lastv, H, h, ~] = arnoldi_last_sorth_update(m, lastv, H, h, SV_big, lastq);
             print_check_metrics("after update", m, lastv, H, h, A, V_big(:, 1 : m), S, param);
         case "last_hmorth"
-            AV_big = compute_AV(A, V_big(:, 1 : m));
-            print_check_metrics("before update", m, lastv, H, h, A, AV_big, [], param);
-            [lastv, H, h] = arnoldi_last_hmorth_update(m, lastv, H, h, AV_big);
-            print_check_metrics("after update", m, lastv, H, h, A, AV_big, [], param);
+            if should_check(param)
+                AV_big = compute_AV(A, V_big(:, 1 : m));
+                print_check_metrics("before update", m, lastv, H, h, A, AV_big, [], param);
+            end
+            [lastv, H, h] = arnoldi_last_hmorth_update(m, lastv, H, h);
+            if should_check(param)
+                print_check_metrics("after update", m, lastv, H, h, A, AV_big, [], param);
+            end
         case "last_shmorth"
-            AV_big = compute_AV(A, V_big(:, 1 : m));
-            SAV_big = S * AV_big;
-            print_check_metrics("before update", m, lastv, H, h, A, AV_big, S, param);
-            [lastv, H, h] = arnoldi_last_shmorth_update(m, lastv, H, h, SV_big, SAV_big, lastq);
-            print_check_metrics("after update", m, lastv, H, h, A, AV_big, S, param);
+            if should_check(param)
+                AV_big = compute_AV(A, V_big(:, 1 : m));
+                print_check_metrics("before update", m, lastv, H, h, A, AV_big, S, param);
+            end
+            [lastv, H, h] = arnoldi_last_shmorth_update(m, lastv, H, h, SV_big, lastq);
+            if should_check(param)
+                print_check_metrics("after update", m, lastv, H, h, A, AV_big, S, param);
+            end
         otherwise
             error("FUNM_QUAD: unknown adaptive Arnoldi update.");
     end
@@ -115,7 +122,7 @@ end
 
 function print_check_metrics(label, m, lastv, H, h, A, orth_basis, S, param)
 
-if param.check == 1
+if should_check(param)
     global V_big;
     
     rel_err_AD = check_arnoldi(m, V_big(:, 1 : m), lastv, H, h, A);
@@ -131,6 +138,12 @@ if param.check == 1
     fprintf("  rel_orth_err: %.1e\n", rel_orth_err);
     fprintf("  cond_V: %.1e\n", cond_V);
 end
+
+end
+
+function flag = should_check(param)
+
+flag = isfield(param, "check") && param.check == 1;
 
 end
 

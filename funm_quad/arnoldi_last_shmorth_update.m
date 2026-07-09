@@ -1,9 +1,9 @@
-function [w, H, h, Sw] = arnoldi_last_shmorth_update(m, w, H, h, SV_big, SAV_big, Sw)
+function [w, H, h, Sw] = arnoldi_last_shmorth_update(m, w, H, h, SV_big, Sw)
 
 global V_big;
 
-% SAV_big is kept in the signature for compatibility.  Using the QR
-% factorization below avoids forming the sketched normal equations.
+% The QR factorization below avoids forming SAV_big or sketched normal
+% equations explicitly.
 em = zeros(m,1); em(m)=1;
 [~,R] = qr([SV_big,Sw], "econ");
 
