@@ -17,7 +17,8 @@ for it_method = 1 : num_method
         for it_trunc = 1 : num_truncate_len
             truncation_length = truncation_length_list(it_trunc);
             save_name = method_name + "_" + string(truncation_length);
-            print_name = method_name + " (t = " + string(truncation_length) + ")";
+            print_name = sprintf("%s-\\(%d\\)", ...
+                erase(method_name, "_t"), truncation_length);
             load(data_prefix + save_name  + ".mat");
             print_result(print_name, result, f_ex);
         end
