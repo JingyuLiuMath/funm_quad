@@ -79,5 +79,5 @@ basic_param.verbose = 1;
 basic_param.check = check_flag;
 
 %% Print.
-caption_name = "Relative error, runtime, number of restarted cycles, number of matrix-vector products, and maximum number of stored vectors for the inverse square root function in the convection-diffusion example.";
+caption_name = "Relative error, runtime, number of restart cycles, number of matrix-vector products, and maximum number of stored vectors for the inverse square root function in the convection-diffusion example.";
 label_name = "conv_diff";
