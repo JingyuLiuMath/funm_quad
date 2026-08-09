@@ -53,8 +53,8 @@ legend("location", "southeastoutside");
 xlabel('number of matrix-vector products');
 ylabel('relative error');
 set(gca, 'FontSize', 18);
-file_name = figure_prefix + "_rel_err.eps";
-save_plot_figure(fig, file_name, "epsc");
+file_name = figure_prefix + "_rel_err.pdf";
+save_plot_figure(fig, file_name, "pdf");
 file_name = figure_prefix + "_rel_err.png";
 save_plot_figure(fig, file_name, "png");
 
@@ -76,8 +76,8 @@ legend("location", "northeast");
 xlabel('iteration');
 ylabel('update norm');
 set(gca, 'FontSize', 18);
-file_name = figure_prefix + "_norm_update.eps";
-save_plot_figure(fig, file_name, "epsc");
+file_name = figure_prefix + "_norm_update.pdf";
+save_plot_figure(fig, file_name, "pdf");
 file_name = figure_prefix + "_norm_update.png";
 save_plot_figure(fig, file_name, "png");
 
@@ -99,8 +99,8 @@ legend("location", "northeast");
 xlabel('iteration');
 ylabel('num of quad points');
 set(gca, 'FontSize', 18);
-file_name = figure_prefix + "_num_quad.eps";
-save_plot_figure(fig, file_name, "epsc");
+file_name = figure_prefix + "_num_quad.pdf";
+save_plot_figure(fig, file_name, "pdf");
 file_name = figure_prefix + "_num_quad.png";
 save_plot_figure(fig, file_name, "png");
 
@@ -122,8 +122,8 @@ legend("location", "northeast");
 xlabel('iteration');
 ylabel('subspace dim');
 set(gca, 'FontSize', 18);
-file_name = figure_prefix + "_subspace_dim.eps";
-save_plot_figure(fig, file_name, "epsc");
+file_name = figure_prefix + "_subspace_dim.pdf";
+save_plot_figure(fig, file_name, "pdf");
 file_name = figure_prefix + "_subspace_dim.png";
 save_plot_figure(fig, file_name, "png");
 
@@ -149,8 +149,8 @@ function save_plot_figure(fig, file_name, file_format)
 
 drawnow;
 switch file_format
-    case "epsc"
-        print(fig, char(file_name), "-depsc", "-painters");
+    case "pdf"
+        print(fig, char(file_name), "-dpdf", "-painters");
     case "png"
         print(fig, char(file_name), "-dpng", "-r100");
     otherwise

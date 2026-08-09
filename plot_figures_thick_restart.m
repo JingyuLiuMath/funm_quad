@@ -92,7 +92,7 @@ for it = 1 : num_result
     title(display_name);
     set(gca, 'FontSize', 18);
     hold off;
-    save_plot_figure(fig, figure_prefix + "_" + display_name + "_thick_restart_rel_err.eps", "epsc")
+    save_plot_figure(fig, figure_prefix + "_" + display_name + "_thick_restart_rel_err.pdf", "pdf")
     save_plot_figure(fig, figure_prefix + "_" + display_name + "_thick_restart_rel_err.png", "png");
 end
 
@@ -118,8 +118,8 @@ function save_plot_figure(fig, file_name, file_format)
 
 drawnow;
 switch file_format
-    case "epsc"
-        print(fig, char(file_name), "-depsc", "-painters");
+    case "pdf"
+        print(fig, char(file_name), "-dpdf", "-painters");
     case "png"
         print(fig, char(file_name), "-dpng", "-r100");
     otherwise
