@@ -1,0 +1,11 @@
+# Generated experiment results; input datasets under data/*_data remain tracked.
+/data/conv_diff/*
+!/data/conv_diff/.gitkeep
+/data/frac_laplacian/*
+!/data/frac_laplacian/.gitkeep
+/data/qcd/*
+!/data/qcd/.gitkeep
+
+# Generated plots; keep the experiment directories in the repository.
+/figure/*/*
+!/figure/*/.gitkeep
